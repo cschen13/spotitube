@@ -9,13 +9,13 @@ import (
 )
 
 const (
-	REDIRECT  = "http://localhost:8080/callback"
 	STATE_KEY = "spotify_auth_state"
 )
 
 var (
-	letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
-	auth    = spotify.NewAuthenticator(REDIRECT, spotify.ScopePlaylistReadPrivate)
+	redirect = "http://localhost" + getPort() + "/callback"
+	letters  = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
+	auth     = spotify.NewAuthenticator(redirect, spotify.ScopePlaylistReadPrivate, spotify.ScopePlaylistReadCollaborative)
 )
 
 func init() {
@@ -30,7 +30,7 @@ func generateRandStr(n int) string {
 	return string(b)
 }
 
-func initiateAuth(w http.ResponseWriter, r *http.Request) {
+func initiateAuthHandler(w http.ResponseWriter, r *http.Request) {
 	state := generateRandStr(128)
 	cookie := http.Cookie{Name: STATE_KEY, Value: state}
 	http.SetCookie(w, &cookie)
@@ -39,7 +39,7 @@ func initiateAuth(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, url, http.StatusFound)
 }
 
-func completeAuth(w http.ResponseWriter, r *http.Request) {
+func completeAuthHandler(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie(STATE_KEY)
 	if err != nil {
 		log.Print("No cookie for spotify auth state found")
@@ -50,13 +50,14 @@ func completeAuth(w http.ResponseWriter, r *http.Request) {
 	storedState := cookie.Value
 	tok, err := auth.Token(storedState, r)
 	if err != nil {
-		http.Error(w, "Couldn't get token", http.StatusForbidden)
+		http.Redirect(w, r, "/", http.StatusFound)
+		log.Print("Couldn't get token:")
 		log.Print(err)
 		return
 	}
 
 	if st := r.FormValue("state"); st != storedState {
-		http.NotFound(w, r)
+		http.Error(w, "Non-matching states. Please clear your cookies and try logging in again.", http.StatusForbidden)
 		log.Print("State mismatch: %s != %s\n", st, storedState)
 		return
 	}
@@ -64,5 +65,5 @@ func completeAuth(w http.ResponseWriter, r *http.Request) {
 	// use the token to get an authenticated client
 	client := auth.NewClient(tok)
 	addSpotifyChan <- spotifySession{state: storedState, client: &client}
-	http.Redirect(w, r, "playlists", http.StatusFound)
+	http.Redirect(w, r, "playlists/1", http.StatusFound)
 }

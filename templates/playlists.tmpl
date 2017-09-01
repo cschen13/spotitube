@@ -9,30 +9,46 @@
 	<body>
 		<div class="container mt-5">
 			<h1>Your Playlists</h1>
+			{{with .SimplePlaylistPage}}
 				{{if .Playlists}}
 					<div class="row">
 					{{range .Playlists}}
 						<div class="col-sm-4 mb-5">
 							<div class="card">
-								<img 
+								<img
 									class="card-img-top"
 									{{if .Images}}
 										{{with $image := (index .Images 0)}}
 											src="{{$image.URL}}"
 										{{end}}
+										{{else}}
+											src="/assets/no-artwork.png"
 									{{end}}
 									alt="Playlist Art">
 								<div class="card-body">
 									<h4 class="card-title"><a href='{{index .ExternalURLs "spotify"}}'>{{.Name}}</a></h4>
-									<a href="#" class="btn btn-primary">Convert</a>
+									<a href="/convert-spotify/{{.ID}}" class="btn btn-primary">Convert</a>
 								</div>
 							</div>
 						</div>
 					{{end}}
 					</div>
 				{{else}}
-					<p>Looks like you don't have any playlists. Try adding one and then hit refresh to see it!</p>
+					<p>Looks like you don't have any playlists. Try adding one and then refresh the page to see it!</p>
 				{{end}}
+			{{end}}
+			<p>Page:</p>
+			<nav aria-label="Playlist page navigation">
+			  <ul class="pagination">
+			  {{if (add .PageNumber -1)}}
+			  	<li class="page-item"><a class="page-link" href="/playlists/{{add .PageNumber -1}}">Previous</a></li>
+			  {{end}}
+			    <li class="page-item active"><a class="page-link" href="#">{{.PageNumber}}</a></li>
+			  {{if not .LastPage}}
+			    <li class="page-item"><a class="page-link" href="/playlists/{{add .PageNumber 1}}">Next</a></li>
+			  {{end}}
+			  </ul>
+			</nav>
 		</div>
 	</body>
 </html>
