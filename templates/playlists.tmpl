@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<title>SpotiTube - Your Playlists</title>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+	</head>
+	<body>
+		<div class="container mt-5">
+			<h1>Your Playlists</h1>
+				{{if .Playlists}}
+					<div class="row">
+					{{range .Playlists}}
+						<div class="col-sm-4 mb-5">
+							<div class="card">
+								<img 
+									class="card-img-top"
+									{{if .Images}}
+										{{with $image := (index .Images 0)}}
+											src="{{$image.URL}}"
+										{{end}}
+									{{end}}
+									alt="Playlist Art">
+								<div class="card-body">
+									<h4 class="card-title"><a href='{{index .ExternalURLs "spotify"}}'>{{.Name}}</a></h4>
+									<a href="#" class="btn btn-primary">Convert</a>
+								</div>
+							</div>
+						</div>
+					{{end}}
+					</div>
+				{{else}}
+					<p>Looks like you don't have any playlists. Try adding one and then hit refresh to see it!</p>
+				{{end}}
+		</div>
+	</body>
+</html>

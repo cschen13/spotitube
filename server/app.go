@@ -10,14 +10,17 @@ import (
 // Routes
 func init() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		log.Println("Got request for:", r.URL.String())
-		t, _ := template.ParseFiles("templates/index.tmpl")
-		t.Execute(w, nil)
+		renderTemplate(w, "index", nil)
 	})
 
 	http.HandleFunc("/login", initiateAuth)
 	http.HandleFunc("/callback", completeAuth)
 	http.HandleFunc("/playlists", getPlaylists)
+}
+
+func renderTemplate(w http.ResponseWriter, tmpl string, p interface{}) {
+	t, _ := template.ParseFiles("templates/" + tmpl + ".tmpl")
+	t.Execute(w, &p)
 }
 
 func getPort() string {

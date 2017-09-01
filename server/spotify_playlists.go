@@ -1,10 +1,12 @@
 package server
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 )
+
+type playlistPage struct {
+}
 
 func getPlaylists(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie(STATE_KEY)
@@ -29,9 +31,9 @@ func getPlaylists(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, playlist := range page.Playlists {
-		log.Printf("%s", playlist.Name)
-	}
+	// for _, playlist := range page.Playlists {
+	// 	log.Printf("%v", playlist.Images)
+	// }
 
-	fmt.Fprintf(w, "Playlists found, check logs.")
+	renderTemplate(w, "playlists", page)
 }
