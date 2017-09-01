@@ -36,14 +36,14 @@ func initiateAuth(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &cookie)
 	url := auth.AuthURL(state)
 	log.Printf("Redirecting user to %s", url)
-	http.Redirect(w, r, url, 302)
+	http.Redirect(w, r, url, http.StatusFound)
 }
 
 func completeAuth(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie(STATE_KEY)
 	if err != nil {
 		log.Print("No cookie for spotify auth state found")
-		http.Redirect(w, r, "login", 302)
+		http.Redirect(w, r, "login", http.StatusFound)
 		return
 	}
 
@@ -64,5 +64,5 @@ func completeAuth(w http.ResponseWriter, r *http.Request) {
 	// use the token to get an authenticated client
 	client := auth.NewClient(tok)
 	addSpotifyChan <- spotifySession{state: storedState, client: &client}
-	http.Redirect(w, r, "playlists", 302)
+	http.Redirect(w, r, "playlists", http.StatusFound)
 }
