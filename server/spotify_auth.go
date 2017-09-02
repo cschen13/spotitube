@@ -40,14 +40,16 @@ func initiateAuthHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func completeAuthHandler(w http.ResponseWriter, r *http.Request) {
+	// check the request for a state cookie
 	cookie, err := r.Cookie(STATE_KEY)
 	if err != nil {
 		log.Print("No cookie for spotify auth state found")
 		http.Redirect(w, r, "login", http.StatusFound)
 		return
 	}
-
 	storedState := cookie.Value
+
+	// acquire access token (also checks state parameter)
 	tok, err := auth.Token(storedState, r)
 	if err != nil {
 		http.Redirect(w, r, "/", http.StatusFound)
@@ -56,14 +58,8 @@ func completeAuthHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if st := r.FormValue("state"); st != storedState {
-		http.Error(w, "Non-matching states. Please clear your cookies and try logging in again.", http.StatusForbidden)
-		log.Print("State mismatch: %s != %s\n", st, storedState)
-		return
-	}
-
 	// use the token to get an authenticated client
 	client := auth.NewClient(tok)
 	addSpotifyChan <- spotifySession{state: storedState, client: &client}
-	http.Redirect(w, r, "playlists/1", http.StatusFound)
+	http.Redirect(w, r, "playlists", http.StatusFound)
 }

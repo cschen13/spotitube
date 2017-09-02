@@ -1,9 +1,7 @@
 package server
 
 import (
-	"github.com/gorilla/mux"
 	"github.com/zmb3/spotify"
-	"html/template"
 	"log"
 	"net/http"
 	"strconv"
@@ -21,14 +19,16 @@ type playlistPage struct {
 }
 
 func getPlaylistsHandler(w http.ResponseWriter, r *http.Request) {
+	// check the request for a state cookie
 	cookie, err := r.Cookie(STATE_KEY)
 	if err != nil {
-		log.Print("No stored state found")
+		log.Print("No cookie for spotify auth state found")
 		http.Redirect(w, r, "login", http.StatusFound)
 		return
 	}
-
 	state := cookie.Value
+
+	// retrieve the Spotify client
 	client := getSpotify(state)
 	if client == nil {
 		log.Print("No associated user found for state %s", state)
@@ -36,15 +36,15 @@ func getPlaylistsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	params := mux.Vars(r)
-	pageNumberParam, present := params[PAGE_PARAM]
-	if !present {
+	// get page number from route
+	pageNumberParam := r.URL.Query().Get(PAGE_PARAM)
+	if pageNumberParam == "" {
 		pageNumberParam = "1"
 	}
 
 	page, err := generatePlaylistPage(client, pageNumberParam)
 	if err != nil {
-		http.Error(w, "Error while preparing playlists", http.StatusInternalServerError)
+		renderErrorTemplate(w, "An error occurred while generating the playlists.", http.StatusInternalServerError)
 		log.Println(err)
 		return
 	}
@@ -52,12 +52,8 @@ func getPlaylistsHandler(w http.ResponseWriter, r *http.Request) {
 	// for _, playlist := range page.SimplePlaylistPage.Playlists {
 	// 	log.Printf("%v", playlist.Images)
 	// }
-	funcMap := template.FuncMap{
-		"add": func(i int, j int) int {
-			return i + j
-		},
-	}
-	renderTemplate(w, "playlists", page, funcMap)
+
+	renderTemplate(w, "playlists", page)
 }
 
 func generatePlaylistPage(client *spotify.Client, pageNumberParam string) (page playlistPage, err error) {
@@ -66,6 +62,8 @@ func generatePlaylistPage(client *spotify.Client, pageNumberParam string) (page 
 		return
 	}
 
+	// limit is one more than PAGE_LIMIT so we can "peek ahead"
+	// and determine if this is the last page of playlists
 	limit := PAGE_LIMIT + 1
 	offset := (pageNumber - 1) * PAGE_LIMIT
 	options := spotify.Options{Limit: &limit, Offset: &offset}
