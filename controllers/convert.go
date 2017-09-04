@@ -1,4 +1,4 @@
-package server
+package controllers
 
 import (
 	"fmt"
@@ -8,6 +8,10 @@ import (
 )
 
 const PLAYLIST_ID_PARAM = "playlistId"
+
+func RegisterConvertController(router *mux.Router) {
+	router.HandleFunc("/convert-spotify/{"+PLAYLIST_ID_PARAM+"}", convertSpotifyHandler)
+}
 
 func convertSpotifyHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

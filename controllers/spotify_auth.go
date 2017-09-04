@@ -1,7 +1,9 @@
-package server
+package controllers
 
 import (
-	"github.com/zmb3/spotify"
+	"github.com/cschen13/spotitube/models"
+	"github.com/cschen13/spotitube/utils"
+	"github.com/gorilla/mux"
 	"log"
 	"math/rand"
 	"net/http"
@@ -12,29 +14,21 @@ const (
 	STATE_KEY = "spotify_auth_state"
 )
 
-var (
-	redirect = "http://localhost" + getPort() + "/callback"
-	letters  = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
-	auth     = spotify.NewAuthenticator(redirect, spotify.ScopePlaylistReadPrivate, spotify.ScopePlaylistReadCollaborative)
-)
-
 func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
 }
 
-func generateRandStr(n int) string {
-	b := make([]rune, n)
-	for i := range b {
-		b[i] = letters[rand.Intn(len(letters))]
-	}
-	return string(b)
+func RegisterAuthController(router *mux.Router) {
+	router.HandleFunc("/login", initiateAuthHandler)
+	router.HandleFunc("/callback", completeAuthHandler)
 }
 
 func initiateAuthHandler(w http.ResponseWriter, r *http.Request) {
-	state := generateRandStr(128)
+	state := utils.GenerateRandStr(128)
 	cookie := http.Cookie{Name: STATE_KEY, Value: state}
 	http.SetCookie(w, &cookie)
-	url := auth.AuthURL(state)
+	url := models.BuildSpotifyAuthURL(state)
+	// url := auth.AuthURL(state)
 	log.Printf("Redirecting user to %s", url)
 	http.Redirect(w, r, url, http.StatusFound)
 }
@@ -50,16 +44,14 @@ func completeAuthHandler(w http.ResponseWriter, r *http.Request) {
 	storedState := cookie.Value
 
 	// acquire access token (also checks state parameter)
-	tok, err := auth.Token(storedState, r)
+	user, err := models.NewUser(storedState, r)
 	if err != nil {
 		http.Redirect(w, r, "/", http.StatusFound)
-		log.Print("Couldn't get token:")
+		log.Print("Couldn't create user:")
 		log.Print(err)
 		return
 	}
 
-	// use the token to get an authenticated client
-	client := auth.NewClient(tok)
-	addSpotifyChan <- spotifySession{state: storedState, client: &client}
+	user.Add()
 	http.Redirect(w, r, "playlists", http.StatusFound)
 }
