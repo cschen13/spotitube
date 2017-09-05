@@ -13,12 +13,6 @@ const (
 	PAGE_PARAM = "page"
 )
 
-type playlistPage struct {
-	Playlists  []models.SpotifyPlaylist
-	PageNumber int
-	LastPage   bool
-}
-
 type PlaylistController struct {
 	sessionManager *utils.SessionManager
 }
@@ -63,6 +57,12 @@ func (ctrl *PlaylistController) getPlaylistsHandler(w http.ResponseWriter, r *ht
 	}
 
 	utils.RenderTemplate(w, "playlists", page)
+}
+
+type playlistPage struct {
+	Playlists  []models.SpotifyPlaylist
+	PageNumber int
+	LastPage   bool
 }
 
 func generatePlaylistPage(client *models.User, pageNumberParam string) (page playlistPage, err error) {

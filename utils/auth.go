@@ -2,7 +2,6 @@ package utils
 
 import (
 	"math/rand"
-	"os"
 	"time"
 )
 
@@ -12,13 +11,6 @@ var (
 
 func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
-}
-
-func GetPort() string {
-	if p := os.Getenv("PORT"); p != "" {
-		return ":" + p
-	}
-	return ":8080"
 }
 
 func GenerateRandStr(n int) string {

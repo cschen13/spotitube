@@ -9,8 +9,13 @@ import (
 	"net/http"
 )
 
-// Routes
-func init() {
+type Server struct {
+	host   string
+	port   string
+	router http.Handler
+}
+
+func NewServer(host string, port string, sessionSecret string) *Server {
 	router := mux.NewRouter()
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		utils.RenderTemplate(w, "index", nil)
@@ -19,8 +24,10 @@ func init() {
 		utils.RenderErrorTemplate(w, "This page doesn't exist.", http.StatusNotFound)
 	})
 
-	sessionManager := utils.NewSessionManager([]byte(utils.GenerateRandStr(64)))
-	authCtrl := controllers.NewAuthController(sessionManager)
+	sessionManager := utils.NewSessionManager([]byte(sessionSecret))
+	spotifyAuth := models.NewSpotifyAuthenticator(host + port)
+
+	authCtrl := controllers.NewAuthController(sessionManager, spotifyAuth)
 	playlistCtrl := controllers.NewPlaylistController(sessionManager)
 	convertCtrl := controllers.NewConvertController(sessionManager)
 	authCtrl.Register(router)
@@ -29,11 +36,14 @@ func init() {
 
 	// serve images, JS files, etc.
 	router.PathPrefix("/assets/").Handler(http.FileServer(http.Dir(".")))
-	http.Handle("/", router)
+	// http.Handle("/", router)
+	return &Server{host: host, port: port, router: router}
 }
 
-func Start() {
+func (server *Server) Start() {
 	go models.HandleUsers()
-	log.Println("Spinning up the server...")
-	http.ListenAndServe(utils.GetPort(), nil)
+	log.Printf("Spinning up the server at %s...", server.host)
+	// http.ListenAndServe(utils.GetPort(), nil)
+	err := http.ListenAndServe(server.port, server.router)
+	log.Printf(err.Error())
 }

@@ -4,29 +4,39 @@ import (
 	"github.com/zmb3/spotify"
 	"golang.org/x/oauth2"
 	"net/http"
-	"os"
 )
 
 const SPOTIFY_PLAYLISTS_PAGE_LIMIT = 21
+const SPOTIFY_CALLBACK_PATH = "/callback"
 
-var (
-	redirect = "http://localhost" + getPort() + "/callback"
-	auth     = spotify.NewAuthenticator(redirect, spotify.ScopePlaylistReadPrivate, spotify.ScopePlaylistReadCollaborative)
-)
+var spotifyPermissions = []string{
+	spotify.ScopePlaylistReadPrivate,
+	spotify.ScopePlaylistReadCollaborative,
+}
+
+type SpotifyAuthenticator struct {
+	auth spotify.Authenticator
+}
+
+func NewSpotifyAuthenticator(addr string) *SpotifyAuthenticator {
+	return &SpotifyAuthenticator{
+		auth: spotify.NewAuthenticator(addr+SPOTIFY_CALLBACK_PATH, spotifyPermissions...),
+	}
+}
 
 type spotifyClient struct {
 	*spotify.Client
 	token *oauth2.Token
 }
 
-func newSpotifyClient(state string, r *http.Request) (*spotifyClient, error) {
+func (sa *SpotifyAuthenticator) newSpotifyClient(state string, r *http.Request) (*spotifyClient, error) {
 	// acquire access token (also checks state parameter)
-	tok, err := auth.Token(state, r)
+	tok, err := sa.auth.Token(state, r)
 	if err != nil {
 		return nil, err
 	}
 
-	client := auth.NewClient(tok)
+	client := sa.auth.NewClient(tok)
 	return &spotifyClient{&client, tok}, nil
 }
 
@@ -37,15 +47,8 @@ type SpotifyPlaylist struct {
 	ExternalURLs map[string]string
 }
 
-func getPort() string {
-	if p := os.Getenv("PORT"); p != "" {
-		return ":" + p
-	}
-	return ":8080"
-}
-
-func BuildSpotifyAuthURL(state string) string {
-	return auth.AuthURL(state)
+func (sa *SpotifyAuthenticator) BuildSpotifyAuthURL(state string) string {
+	return sa.auth.AuthURL(state)
 }
 
 func (client *spotifyClient) getPlaylists(pageNumber int) (playlists []SpotifyPlaylist, err error) {

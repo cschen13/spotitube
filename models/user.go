@@ -10,8 +10,8 @@ type User struct {
 	spotify *spotifyClient
 }
 
-func NewUser(state string, r *http.Request) (*User, error) {
-	client, err := newSpotifyClient(state, r)
+func NewUser(state string, r *http.Request, auth *SpotifyAuthenticator) (*User, error) {
+	client, err := auth.newSpotifyClient(state, r)
 	if err != nil {
 		return nil, err
 	}
