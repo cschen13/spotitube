@@ -9,12 +9,14 @@ import (
 func main() {
 	hostname := os.Getenv("SPOTITUBE_HOST")
 	scheme := "https://"
+	isDev := false
 	if hostname == "" {
 		hostname = "localhost"
 		scheme = "http://"
+		isDev = true
 	}
 
-	s := server.NewServer(scheme+hostname, getPort(), utils.GenerateRandStr(64))
+	s := server.NewServer(scheme+hostname, getPort(), utils.GenerateRandStr(64), isDev)
 	s.Start()
 }
 

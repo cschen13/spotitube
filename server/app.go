@@ -15,7 +15,7 @@ type Server struct {
 	router http.Handler
 }
 
-func NewServer(host string, port string, sessionSecret string) *Server {
+func NewServer(host string, port string, sessionSecret string, isDev bool) *Server {
 	router := mux.NewRouter()
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		utils.RenderTemplate(w, "index", nil)
@@ -25,7 +25,12 @@ func NewServer(host string, port string, sessionSecret string) *Server {
 	})
 
 	sessionManager := utils.NewSessionManager([]byte(sessionSecret))
-	spotifyAuth := models.NewSpotifyAuthenticator(host + port)
+	var spotifyAuth *models.SpotifyAuthenticator
+	if isDev {
+		spotifyAuth = models.NewSpotifyAuthenticator(host + port)
+	} else {
+		spotifyAuth = models.NewSpotifyAuthenticator(host)
+	}
 
 	authCtrl := controllers.NewAuthController(sessionManager, spotifyAuth)
 	playlistCtrl := controllers.NewPlaylistController(sessionManager)
