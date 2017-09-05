@@ -16,7 +16,12 @@ func main() {
 		isDev = true
 	}
 
-	s := server.NewServer(scheme+hostname, getPort(), utils.GenerateRandStr(64), isDev)
+	sessionSecret := os.Getenv("SPOTITUBE_SESSION_SECRET")
+	if sessionSecret == "" {
+		sessionSecret = utils.GenerateRandStr(64)
+	}
+
+	s := server.NewServer(scheme+hostname, getPort(), sessionSecret, isDev)
 	s.Start()
 }
 

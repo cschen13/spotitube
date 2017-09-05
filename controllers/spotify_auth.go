@@ -25,7 +25,10 @@ func (ctrl *AuthController) Register(router *mux.Router) {
 }
 
 func (ctrl *AuthController) initiateAuthHandler(w http.ResponseWriter, r *http.Request) {
-	if state := ctrl.sessionManager.Get(r, USER_STATE_KEY); state == "" {
+	if state := ctrl.sessionManager.Get(r, USER_STATE_KEY); state != "" && models.GetUser(state) != nil {
+		log.Printf("Found existing session, redirecting to playlists")
+		http.Redirect(w, r, "playlists", http.StatusFound)
+	} else {
 		state = utils.GenerateRandStr(128)
 		err := ctrl.sessionManager.Set(r, w, USER_STATE_KEY, state)
 		if err != nil {
@@ -36,9 +39,6 @@ func (ctrl *AuthController) initiateAuthHandler(w http.ResponseWriter, r *http.R
 		url := ctrl.spotifyAuth.BuildSpotifyAuthURL(state)
 		log.Printf("Redirecting user to %s", url)
 		http.Redirect(w, r, url, http.StatusFound)
-	} else {
-		log.Printf("Found existing session, redirecting to playlists")
-		http.Redirect(w, r, "playlists", http.StatusFound)
 	}
 }
 
