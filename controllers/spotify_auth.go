@@ -5,43 +5,49 @@ import (
 	"github.com/cschen13/spotitube/utils"
 	"github.com/gorilla/mux"
 	"log"
-	"math/rand"
 	"net/http"
-	"time"
 )
 
-const (
-	STATE_KEY = "spotify_auth_state"
-)
+const USER_STATE_KEY = "state"
 
-func init() {
-	rand.Seed(time.Now().UTC().UnixNano())
+type AuthController struct {
+	sessionManager *utils.SessionManager
 }
 
-func RegisterAuthController(router *mux.Router) {
-	router.HandleFunc("/login", initiateAuthHandler)
-	router.HandleFunc("/callback", completeAuthHandler)
+func NewAuthController(sessionManager *utils.SessionManager) *AuthController {
+	return &AuthController{sessionManager: sessionManager}
 }
 
-func initiateAuthHandler(w http.ResponseWriter, r *http.Request) {
-	state := utils.GenerateRandStr(128)
-	cookie := http.Cookie{Name: STATE_KEY, Value: state}
-	http.SetCookie(w, &cookie)
-	url := models.BuildSpotifyAuthURL(state)
-	// url := auth.AuthURL(state)
-	log.Printf("Redirecting user to %s", url)
-	http.Redirect(w, r, url, http.StatusFound)
+func (ctrl *AuthController) Register(router *mux.Router) {
+	router.HandleFunc("/login", ctrl.initiateAuthHandler)
+	router.HandleFunc("/callback", ctrl.completeAuthHandler)
 }
 
-func completeAuthHandler(w http.ResponseWriter, r *http.Request) {
-	// check the request for a state cookie
-	cookie, err := r.Cookie(STATE_KEY)
-	if err != nil {
+func (ctrl *AuthController) initiateAuthHandler(w http.ResponseWriter, r *http.Request) {
+	if state := ctrl.sessionManager.Get(r, USER_STATE_KEY); state == "" {
+		state = utils.GenerateRandStr(128)
+		err := ctrl.sessionManager.Set(r, w, USER_STATE_KEY, state)
+		if err != nil {
+			utils.RenderErrorTemplate(w, "An error occurred while logging in. Please clear your cookies and try again.", http.StatusInternalServerError)
+			return
+		}
+
+		url := models.BuildSpotifyAuthURL(state)
+		log.Printf("Redirecting user to %s", url)
+		http.Redirect(w, r, url, http.StatusFound)
+	} else {
+		log.Printf("Found existing session, redirecting to playlists")
+		http.Redirect(w, r, "playlists", http.StatusFound)
+	}
+}
+
+func (ctrl *AuthController) completeAuthHandler(w http.ResponseWriter, r *http.Request) {
+	storedState := ctrl.sessionManager.Get(r, USER_STATE_KEY)
+	if storedState == "" {
 		log.Print("No cookie for spotify auth state found")
 		http.Redirect(w, r, "login", http.StatusFound)
 		return
 	}
-	storedState := cookie.Value
 
 	// acquire access token (also checks state parameter)
 	user, err := models.NewUser(storedState, r)

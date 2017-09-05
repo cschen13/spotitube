@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"github.com/cschen13/spotitube/models"
 	"github.com/cschen13/spotitube/utils"
 	"github.com/gorilla/mux"
@@ -20,19 +19,27 @@ type playlistPage struct {
 	LastPage   bool
 }
 
-func RegisterPlaylistController(router *mux.Router) {
-	router.HandleFunc("/playlists", getPlaylistsHandler)
+type PlaylistController struct {
+	sessionManager *utils.SessionManager
 }
 
-func getPlaylistsHandler(w http.ResponseWriter, r *http.Request) {
+func NewPlaylistController(sessionManager *utils.SessionManager) *PlaylistController {
+	return &PlaylistController{sessionManager: sessionManager}
+}
+
+func (ctrl *PlaylistController) Register(router *mux.Router) {
+	router.HandleFunc("/playlists", ctrl.getPlaylistsHandler)
+}
+
+func (ctrl *PlaylistController) getPlaylistsHandler(w http.ResponseWriter, r *http.Request) {
 	// check the request for a state cookie
-	cookie, err := r.Cookie(STATE_KEY)
-	if err != nil {
+	// cookie, err := r.Cookie(STATE_KEY)
+	state := ctrl.sessionManager.Get(r, USER_STATE_KEY)
+	if state == "" {
 		log.Print("No cookie for spotify auth state found")
 		http.Redirect(w, r, "login", http.StatusFound)
 		return
 	}
-	state := cookie.Value
 
 	// retrieve the Spotify client
 	client := models.GetUser(state)

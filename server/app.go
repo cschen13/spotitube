@@ -19,9 +19,13 @@ func init() {
 		utils.RenderErrorTemplate(w, "This page doesn't exist.", http.StatusNotFound)
 	})
 
-	controllers.RegisterAuthController(router)
-	controllers.RegisterPlaylistController(router)
-	controllers.RegisterConvertController(router)
+	sessionManager := utils.NewSessionManager([]byte(utils.GenerateRandStr(64)))
+	authCtrl := controllers.NewAuthController(sessionManager)
+	playlistCtrl := controllers.NewPlaylistController(sessionManager)
+	convertCtrl := controllers.NewConvertController(sessionManager)
+	authCtrl.Register(router)
+	playlistCtrl.Register(router)
+	convertCtrl.Register(router)
 
 	// serve images, JS files, etc.
 	router.PathPrefix("/assets/").Handler(http.FileServer(http.Dir(".")))

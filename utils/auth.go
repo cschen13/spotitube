@@ -3,11 +3,16 @@ package utils
 import (
 	"math/rand"
 	"os"
+	"time"
 )
 
 var (
 	letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
 )
+
+func init() {
+	rand.Seed(time.Now().UTC().UnixNano())
+}
 
 func GetPort() string {
 	if p := os.Getenv("PORT"); p != "" {
