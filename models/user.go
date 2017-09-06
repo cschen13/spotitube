@@ -5,18 +5,25 @@ import (
 	"net/http"
 )
 
+const (
+	SPOTIFY_CLIENT = "spotify"
+)
+
 type User struct {
 	state   string
-	spotify *spotifyClient
+	clients map[string]Client
 }
 
-func NewUser(state string, r *http.Request, auth *SpotifyAuthenticator) (*User, error) {
-	client, err := auth.newSpotifyClient(state, r)
+func NewUser(state string, r *http.Request, auth Authenticator, clientType string) (*User, error) {
+	client, err := auth.newClient(state, r)
 	if err != nil {
 		return nil, err
 	}
 
-	return &User{state: state, spotify: client}, nil
+	return &User{
+		state:   state,
+		clients: map[string]Client{clientType: client},
+	}, nil
 }
 
 var (
@@ -52,6 +59,8 @@ func HandleUsers() {
 			if _, present := users[session.state]; !present {
 				log.Printf("New session with state: %s", session.state)
 				users[session.state] = session.user
+			} else {
+				log.Printf("User with state %s already exists: skipping addition")
 			}
 		case req := <-getChan:
 			if user, present := users[req.state]; present {
@@ -63,6 +72,9 @@ func HandleUsers() {
 	}
 }
 
-func (user *User) GetSpotifyPlaylists(pageNumber int) ([]SpotifyPlaylist, error) {
-	return user.spotify.getPlaylists(pageNumber)
+func (user *User) GetClient(key string) Client {
+	if client, present := user.clients[key]; present {
+		return client
+	}
+	return nil
 }

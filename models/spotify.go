@@ -4,10 +4,13 @@ import (
 	"github.com/zmb3/spotify"
 	"golang.org/x/oauth2"
 	"net/http"
+	"strconv"
 )
 
-const SPOTIFY_PLAYLISTS_PAGE_LIMIT = 21
-const SPOTIFY_CALLBACK_PATH = "/callback"
+const (
+	SPOTIFY_PLAYLISTS_PAGE_LIMIT = 21
+	SPOTIFY_CALLBACK_PATH        = "/callback"
+)
 
 var spotifyPermissions = []string{
 	spotify.ScopePlaylistReadPrivate,
@@ -29,7 +32,7 @@ type spotifyClient struct {
 	token *oauth2.Token
 }
 
-func (sa *SpotifyAuthenticator) newSpotifyClient(state string, r *http.Request) (*spotifyClient, error) {
+func (sa *SpotifyAuthenticator) newClient(state string, r *http.Request) (Client, error) {
 	// acquire access token (also checks state parameter)
 	tok, err := sa.auth.Token(state, r)
 	if err != nil {
@@ -40,21 +43,20 @@ func (sa *SpotifyAuthenticator) newSpotifyClient(state string, r *http.Request) 
 	return &spotifyClient{&client, tok}, nil
 }
 
-type SpotifyPlaylist struct {
-	ID           spotify.ID
-	Name         string
-	Images       []spotify.Image
-	ExternalURLs map[string]string
-}
-
-func (sa *SpotifyAuthenticator) BuildSpotifyAuthURL(state string) string {
+func (sa *SpotifyAuthenticator) BuildAuthURL(state string) string {
 	return sa.auth.AuthURL(state)
 }
 
-func (client *spotifyClient) getPlaylists(pageNumber int) (playlists []SpotifyPlaylist, err error) {
-	// limit is one more than PAGE_LIMIT so we can "peek ahead"
-	// and determine if this is the last page of playlists
-	limit := SPOTIFY_PLAYLISTS_PAGE_LIMIT + 1
+func (client *spotifyClient) GetPlaylists(page string) (playlistPage *PlaylistPage, err error) {
+	pageNumber := 1
+	if page != "" {
+		pageNumber, err = strconv.Atoi(page)
+		if err != nil {
+			return
+		}
+	}
+
+	limit := SPOTIFY_PLAYLISTS_PAGE_LIMIT
 	offset := (pageNumber - 1) * SPOTIFY_PLAYLISTS_PAGE_LIMIT
 	options := spotify.Options{Limit: &limit, Offset: &offset}
 	simplePlaylistPage, err := client.CurrentUsersPlaylistsOpt(&options)
@@ -62,9 +64,45 @@ func (client *spotifyClient) getPlaylists(pageNumber int) (playlists []SpotifyPl
 		return
 	}
 
-	playlists = make([]SpotifyPlaylist, len(simplePlaylistPage.Playlists))
+	playlists := make([]Playlist, len(simplePlaylistPage.Playlists))
 	for i, playlist := range simplePlaylistPage.Playlists {
-		playlists[i] = SpotifyPlaylist{ID: playlist.ID, Name: playlist.Name, Images: playlist.Images, ExternalURLs: playlist.ExternalURLs}
+		playlists[i] = &spotifyPlaylist{playlist}
 	}
+
+	playlistPage = &PlaylistPage{Playlists: playlists, PageNumber: pageNumber}
+	if simplePlaylistPage.Previous != "" {
+		playlistPage.PreviousPageParam = strconv.Itoa(pageNumber - 1)
+	}
+
+	if simplePlaylistPage.Next != "" {
+		playlistPage.NextPageParam = strconv.Itoa(pageNumber + 1)
+	}
+
 	return
+}
+
+type spotifyPlaylist struct {
+	obj spotify.SimplePlaylist
+}
+
+func (playlist *spotifyPlaylist) GetID() string {
+	return playlist.obj.ID.String()
+}
+
+func (playlist *spotifyPlaylist) GetName() string {
+	return playlist.obj.Name
+}
+
+func (playlist *spotifyPlaylist) GetURL() string {
+	if url, present := playlist.obj.ExternalURLs["spotify"]; present {
+		return url
+	}
+	return ""
+}
+
+func (playlist *spotifyPlaylist) GetCoverURL() string {
+	if len(playlist.obj.Images) > 0 {
+		return playlist.obj.Images[0].URL
+	}
+	return ""
 }

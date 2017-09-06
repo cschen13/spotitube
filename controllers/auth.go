@@ -36,7 +36,7 @@ func (ctrl *AuthController) initiateAuthHandler(w http.ResponseWriter, r *http.R
 			return
 		}
 
-		url := ctrl.spotifyAuth.BuildSpotifyAuthURL(state)
+		url := ctrl.spotifyAuth.BuildAuthURL(state)
 		log.Printf("Redirecting user to %s", url)
 		http.Redirect(w, r, url, http.StatusFound)
 	}
@@ -51,7 +51,7 @@ func (ctrl *AuthController) completeAuthHandler(w http.ResponseWriter, r *http.R
 	}
 
 	// acquire access token (also checks state parameter)
-	user, err := models.NewUser(storedState, r, ctrl.spotifyAuth)
+	user, err := models.NewUser(storedState, r, ctrl.spotifyAuth, models.SPOTIFY_CLIENT)
 	if err != nil {
 		http.Redirect(w, r, "/", http.StatusFound)
 		log.Print("Couldn't create user:")

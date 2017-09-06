@@ -11,17 +11,15 @@
 						<div class="card">
 							<img
 								class="card-img-top"
-								{{if .Images}}
-									{{with $image := (index .Images 0)}}
-										src="{{$image.URL}}"
-									{{end}}
-									{{else}}
-										src="/assets/no-artwork.png"
+								{{if (coverUrl .)}}
+									src="{{coverUrl .}}"
+								{{else}}
+									src="assets/no-artwork.png"
 								{{end}}
 								alt="Playlist Art">
 							<div class="card-body">
-								<h4 class="card-title"><a href='{{index .ExternalURLs "spotify"}}'>{{.Name}}</a></h4>
-								<a href="/convert-spotify/{{.ID}}" class="btn btn-primary">Convert</a>
+								<h4 class="card-title"><a href='{{url .}}'>{{name .}}</a></h4>
+								<a href="/convert-spotify/{{id .}}" class="btn btn-primary">Convert</a>
 							</div>
 						</div>
 					</div>
@@ -33,12 +31,12 @@
 			<p>Page:</p>
 			<nav aria-label="Playlist page navigation">
 			  <ul class="pagination">
-			  {{if (add .PageNumber -1)}}
-			  	<li class="page-item"><a class="page-link" href="/playlists?page={{add .PageNumber -1}}">Previous</a></li>
+			  {{if .PreviousPageParam}}
+			  	<li class="page-item"><a class="page-link" href="/playlists?page={{.PreviousPageParam}}">Previous</a></li>
 			  {{end}}
 			    <li class="page-item active"><a class="page-link" href="#">{{.PageNumber}}</a></li>
-			  {{if not .LastPage}}
-			    <li class="page-item"><a class="page-link" href="/playlists?page={{add .PageNumber 1}}">Next</a></li>
+			  {{if .NextPageParam}}
+			    <li class="page-item"><a class="page-link" href="/playlists?page={{.NextPageParam}}">Next</a></li>
 			  {{end}}
 			  </ul>
 			</nav>

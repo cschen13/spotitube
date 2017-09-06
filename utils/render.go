@@ -1,14 +1,24 @@
 package utils
 
 import (
+	"github.com/cschen13/spotitube/models"
 	"html/template"
 	"log"
 	"net/http"
 )
 
 var FUNC_MAP = template.FuncMap{
-	"add": func(i int, j int) int {
-		return i + j
+	"id": func(playlist models.Playlist) string {
+		return playlist.GetID()
+	},
+	"name": func(playlist models.Playlist) string {
+		return playlist.GetName()
+	},
+	"url": func(playlist models.Playlist) string {
+		return playlist.GetURL()
+	},
+	"coverUrl": func(playlist models.Playlist) string {
+		return playlist.GetCoverURL()
 	},
 }
 
