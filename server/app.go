@@ -41,7 +41,7 @@ func NewServer(host string, port string, sessionSecret string, isDev bool) *Serv
 		log.Fatalf("Client secret for youtube not found")
 	}
 
-	youtubeAuth := models.NewYoutubeAuthenticator(json)
+	youtubeAuth := models.NewYoutubeAuthenticator(json, port, isDev)
 
 	auths := make(map[string]models.Authenticator)
 	auths[spotifyAuth.GetType()] = spotifyAuth

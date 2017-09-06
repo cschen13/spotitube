@@ -78,7 +78,6 @@ func (ctrl *AuthController) completeAuthHandler(w http.ResponseWriter, r *http.R
 				log.Print(err)
 				return
 			}
-			log.Printf("New %s client added to user %s", auth.GetType(), storedState)
 		} else {
 			user, err := models.NewUser(storedState, r, auth)
 			if err != nil {
@@ -89,7 +88,7 @@ func (ctrl *AuthController) completeAuthHandler(w http.ResponseWriter, r *http.R
 			}
 			user.Add()
 		}
-
+		log.Printf("New %s client added to user %s", auth.GetType(), storedState)
 		http.Redirect(w, r, "/playlists", http.StatusFound)
 	}
 }
