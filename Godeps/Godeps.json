@@ -4,6 +4,11 @@
 	"GodepVersion": "v79",
 	"Deps": [
 		{
+			"ImportPath": "cloud.google.com/go/compute/metadata",
+			"Comment": "v0.12.0-18-gadba27d",
+			"Rev": "adba27d07b6a034e8d2839a4ec5fecc11aa17b30"
+		},
+		{
 			"ImportPath": "github.com/gorilla/context",
 			"Comment": "v1.1-7-g08b5f42",
 			"Rev": "08b5f424b9271eedf6f9f0ce86cb9396ed337a42"
@@ -45,8 +50,36 @@
 			"Rev": "9a379c6b3e95a790ffc43293c2a78dee0d7b6e20"
 		},
 		{
+			"ImportPath": "golang.org/x/oauth2/google",
+			"Rev": "9a379c6b3e95a790ffc43293c2a78dee0d7b6e20"
+		},
+		{
 			"ImportPath": "golang.org/x/oauth2/internal",
 			"Rev": "9a379c6b3e95a790ffc43293c2a78dee0d7b6e20"
+		},
+		{
+			"ImportPath": "golang.org/x/oauth2/jws",
+			"Rev": "9a379c6b3e95a790ffc43293c2a78dee0d7b6e20"
+		},
+		{
+			"ImportPath": "golang.org/x/oauth2/jwt",
+			"Rev": "9a379c6b3e95a790ffc43293c2a78dee0d7b6e20"
+		},
+		{
+			"ImportPath": "google.golang.org/api/gensupport",
+			"Rev": "457a8f3b9fb96a68fa4ebfbeb5bf9992c06cf0a9"
+		},
+		{
+			"ImportPath": "google.golang.org/api/googleapi",
+			"Rev": "457a8f3b9fb96a68fa4ebfbeb5bf9992c06cf0a9"
+		},
+		{
+			"ImportPath": "google.golang.org/api/googleapi/internal/uritemplates",
+			"Rev": "457a8f3b9fb96a68fa4ebfbeb5bf9992c06cf0a9"
+		},
+		{
+			"ImportPath": "google.golang.org/api/youtube/v3",
+			"Rev": "457a8f3b9fb96a68fa4ebfbeb5bf9992c06cf0a9"
 		}
 	]
 }

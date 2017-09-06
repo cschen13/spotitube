@@ -8,6 +8,7 @@ import (
 	"github.com/urfave/negroni"
 	"log"
 	"net/http"
+	"os"
 )
 
 type Server struct {
@@ -35,8 +36,16 @@ func NewServer(host string, port string, sessionSecret string, isDev bool) *Serv
 		spotifyAuth = models.NewSpotifyAuthenticator(host)
 	}
 
+	json := os.Getenv("YOUTUBE_SECRET")
+	if json == "" {
+		log.Fatalf("Client secret for youtube not found")
+	}
+
+	youtubeAuth := models.NewYoutubeAuthenticator(json)
+
 	auths := make(map[string]models.Authenticator)
 	auths[spotifyAuth.GetType()] = spotifyAuth
+	auths[youtubeAuth.GetType()] = youtubeAuth
 
 	authCtrl := controllers.NewAuthController(sessionManager, &auths)
 	playlistCtrl := controllers.NewPlaylistController(sessionManager)

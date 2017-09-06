@@ -5,10 +5,6 @@ import (
 	"net/http"
 )
 
-const (
-	SPOTIFY_CLIENT = "spotify"
-)
-
 type User struct {
 	state   string
 	clients map[string]Client

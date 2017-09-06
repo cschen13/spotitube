@@ -43,13 +43,14 @@ func (ctrl *PlaylistController) getPlaylistsHandler(w http.ResponseWriter, r *ht
 
 	clientParam := r.URL.Query().Get(CLIENT_PARAM)
 	if clientParam == "" {
-		clientParam = models.SPOTIFY_CLIENT
+		clientParam = models.SPOTIFY_SERVICE
 	}
 
 	client := user.GetClient(clientParam)
 	if client == nil {
-		log.Print("No %s client found for user %s", clientParam, state)
-		utils.RenderErrorTemplate(w, "An error occurred while generating the playlists.", http.StatusInternalServerError)
+		log.Printf("No %s client found for user %s", clientParam, state)
+		http.Redirect(w, r, "/login/"+models.SPOTIFY_SERVICE, http.StatusFound)
+		return
 	}
 
 	playlistPage, err := client.GetPlaylists(r.URL.Query().Get(PAGE_PARAM))

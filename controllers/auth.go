@@ -73,16 +73,16 @@ func (ctrl *AuthController) completeAuthHandler(w http.ResponseWriter, r *http.R
 		if user != nil {
 			err := user.AddClient(storedState, r, auth)
 			if err != nil {
-				utils.RenderErrorTemplate(w, "An error occurred while logging in. Please clear your cookies and try again.", http.StatusInternalServerError)
+				http.Redirect(w, r, "/", http.StatusFound)
 				log.Print("Couldn't add new client to user:")
 				log.Print(err)
 				return
 			}
-			log.Printf("New client added to user %s", storedState)
+			log.Printf("New %s client added to user %s", auth.GetType(), storedState)
 		} else {
 			user, err := models.NewUser(storedState, r, auth)
 			if err != nil {
-				utils.RenderErrorTemplate(w, "An error occurred while logging in. Please clear your cookies and try again.", http.StatusInternalServerError)
+				http.Redirect(w, r, "/", http.StatusFound)
 				log.Print("Couldn't create user:")
 				log.Print(err)
 				return
