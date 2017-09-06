@@ -24,6 +24,11 @@
 			"Rev": "b61c93cb7f67533c8bfbb5ea450efc07e5833c5e"
 		},
 		{
+			"ImportPath": "github.com/urfave/negroni",
+			"Comment": "v0.2.0-129-gc262547",
+			"Rev": "c262547a5086067ebe455c81db5cc52eb298ac3c"
+		},
+		{
 			"ImportPath": "github.com/zmb3/spotify",
 			"Rev": "69bbd6f6bcb82bd559809be400df6477eff6d482"
 		},
