@@ -14,16 +14,18 @@ type User struct {
 	clients map[string]Client
 }
 
-func NewUser(state string, r *http.Request, auth Authenticator, clientType string) (*User, error) {
-	client, err := auth.newClient(state, r)
-	if err != nil {
-		return nil, err
+func NewUser(state string, r *http.Request, auth Authenticator) (*User, error) {
+	user := &User{
+		state:   state,
+		clients: make(map[string]Client),
 	}
 
-	return &User{
-		state:   state,
-		clients: map[string]Client{clientType: client},
-	}, nil
+	err := user.AddClient(state, r, auth)
+	if err != nil {
+		log.Printf("Error adding new user with state %s: %s", state, err.Error())
+		return nil, err
+	}
+	return user, nil
 }
 
 var (
@@ -39,6 +41,16 @@ type addReq struct {
 
 func (user *User) Add() {
 	addChan <- addReq{user.state, user}
+}
+
+func (user *User) AddClient(state string, r *http.Request, auth Authenticator) error {
+	client, err := auth.newClient(state, r)
+	if err != nil {
+		return err
+	}
+
+	user.clients[auth.GetType()] = client
+	return nil
 }
 
 type getReq struct {

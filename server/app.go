@@ -35,7 +35,10 @@ func NewServer(host string, port string, sessionSecret string, isDev bool) *Serv
 		spotifyAuth = models.NewSpotifyAuthenticator(host)
 	}
 
-	authCtrl := controllers.NewAuthController(sessionManager, spotifyAuth)
+	auths := make(map[string]models.Authenticator)
+	auths[spotifyAuth.GetType()] = spotifyAuth
+
+	authCtrl := controllers.NewAuthController(sessionManager, &auths)
 	playlistCtrl := controllers.NewPlaylistController(sessionManager)
 	convertCtrl := controllers.NewConvertController(sessionManager)
 	authCtrl.Register(router)

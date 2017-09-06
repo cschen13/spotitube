@@ -8,16 +8,16 @@ import (
 )
 
 var FUNC_MAP = template.FuncMap{
-	"id": func(playlist models.Playlist) string {
+	"id": func(playlist models.PlaylistInfo) string {
 		return playlist.GetID()
 	},
-	"name": func(playlist models.Playlist) string {
+	"name": func(playlist models.PlaylistInfo) string {
 		return playlist.GetName()
 	},
-	"url": func(playlist models.Playlist) string {
+	"url": func(playlist models.PlaylistInfo) string {
 		return playlist.GetURL()
 	},
-	"coverUrl": func(playlist models.Playlist) string {
+	"coverUrl": func(playlist models.PlaylistInfo) string {
 		return playlist.GetCoverURL()
 	},
 }

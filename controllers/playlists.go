@@ -29,7 +29,7 @@ func (ctrl *PlaylistController) getPlaylistsHandler(w http.ResponseWriter, r *ht
 	// check the request for a state cookie
 	state := ctrl.sessionManager.Get(r, USER_STATE_KEY)
 	if state == "" {
-		log.Print("No cookie for spotify auth state found")
+		log.Print("No cookie for user found")
 		http.Redirect(w, r, "login", http.StatusFound)
 		return
 	}

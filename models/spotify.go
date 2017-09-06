@@ -9,7 +9,7 @@ import (
 
 const (
 	SPOTIFY_PLAYLISTS_PAGE_LIMIT = 21
-	SPOTIFY_CALLBACK_PATH        = "/callback"
+	SPOTIFY_SERVICE              = "spotify"
 )
 
 var spotifyPermissions = []string{
@@ -23,13 +23,12 @@ type SpotifyAuthenticator struct {
 
 func NewSpotifyAuthenticator(addr string) *SpotifyAuthenticator {
 	return &SpotifyAuthenticator{
-		auth: spotify.NewAuthenticator(addr+SPOTIFY_CALLBACK_PATH, spotifyPermissions...),
+		auth: spotify.NewAuthenticator(addr+"/callback/"+SPOTIFY_SERVICE, spotifyPermissions...),
 	}
 }
 
-type spotifyClient struct {
-	*spotify.Client
-	token *oauth2.Token
+func (sa *SpotifyAuthenticator) BuildAuthURL(state string) string {
+	return sa.auth.AuthURL(state)
 }
 
 func (sa *SpotifyAuthenticator) newClient(state string, r *http.Request) (Client, error) {
@@ -43,11 +42,16 @@ func (sa *SpotifyAuthenticator) newClient(state string, r *http.Request) (Client
 	return &spotifyClient{&client, tok}, nil
 }
 
-func (sa *SpotifyAuthenticator) BuildAuthURL(state string) string {
-	return sa.auth.AuthURL(state)
+func (sa *SpotifyAuthenticator) GetType() string {
+	return SPOTIFY_SERVICE
 }
 
-func (client *spotifyClient) GetPlaylists(page string) (playlistPage *PlaylistPage, err error) {
+type spotifyClient struct {
+	*spotify.Client
+	token *oauth2.Token
+}
+
+func (client *spotifyClient) GetPlaylists(page string) (playlistPage *PlaylistsPage, err error) {
 	pageNumber := 1
 	if page != "" {
 		pageNumber, err = strconv.Atoi(page)
@@ -64,12 +68,12 @@ func (client *spotifyClient) GetPlaylists(page string) (playlistPage *PlaylistPa
 		return
 	}
 
-	playlists := make([]Playlist, len(simplePlaylistPage.Playlists))
+	playlists := make([]PlaylistInfo, len(simplePlaylistPage.Playlists))
 	for i, playlist := range simplePlaylistPage.Playlists {
-		playlists[i] = &spotifyPlaylist{playlist}
+		playlists[i] = &spotifyPlaylistInfo{playlist}
 	}
 
-	playlistPage = &PlaylistPage{Playlists: playlists, PageNumber: pageNumber}
+	playlistPage = &PlaylistsPage{Playlists: playlists, PageNumber: pageNumber}
 	if simplePlaylistPage.Previous != "" {
 		playlistPage.PreviousPageParam = strconv.Itoa(pageNumber - 1)
 	}
@@ -81,26 +85,26 @@ func (client *spotifyClient) GetPlaylists(page string) (playlistPage *PlaylistPa
 	return
 }
 
-type spotifyPlaylist struct {
+type spotifyPlaylistInfo struct {
 	obj spotify.SimplePlaylist
 }
 
-func (playlist *spotifyPlaylist) GetID() string {
+func (playlist *spotifyPlaylistInfo) GetID() string {
 	return playlist.obj.ID.String()
 }
 
-func (playlist *spotifyPlaylist) GetName() string {
+func (playlist *spotifyPlaylistInfo) GetName() string {
 	return playlist.obj.Name
 }
 
-func (playlist *spotifyPlaylist) GetURL() string {
+func (playlist *spotifyPlaylistInfo) GetURL() string {
 	if url, present := playlist.obj.ExternalURLs["spotify"]; present {
 		return url
 	}
 	return ""
 }
 
-func (playlist *spotifyPlaylist) GetCoverURL() string {
+func (playlist *spotifyPlaylistInfo) GetCoverURL() string {
 	if len(playlist.obj.Images) > 0 {
 		return playlist.obj.Images[0].URL
 	}

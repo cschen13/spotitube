@@ -6,21 +6,22 @@ import (
 
 type Authenticator interface {
 	BuildAuthURL(string) string
+	GetType() string
 	newClient(string, *http.Request) (Client, error)
 }
 
 type Client interface {
-	GetPlaylists(string) (*PlaylistPage, error)
+	GetPlaylists(string) (*PlaylistsPage, error)
 }
 
-type PlaylistPage struct {
-	Playlists         []Playlist
+type PlaylistsPage struct {
+	Playlists         []PlaylistInfo
 	PageNumber        int
 	NextPageParam     string
 	PreviousPageParam string
 }
 
-type Playlist interface {
+type PlaylistInfo interface {
 	GetID() string
 	GetName() string
 	GetURL() string
