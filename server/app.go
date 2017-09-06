@@ -5,17 +5,21 @@ import (
 	"github.com/cschen13/spotitube/models"
 	"github.com/cschen13/spotitube/utils"
 	"github.com/gorilla/mux"
+	"github.com/urfave/negroni"
 	"log"
 	"net/http"
 )
 
 type Server struct {
-	host   string
-	port   string
-	router http.Handler
+	*negroni.Negroni
+	host string
+	port string
 }
 
 func NewServer(host string, port string, sessionSecret string, isDev bool) *Server {
+	server := Server{negroni.Classic(), host, port}
+	sessionManager := utils.NewSessionManager([]byte(sessionSecret))
+
 	router := mux.NewRouter()
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		utils.RenderTemplate(w, "index", nil)
@@ -24,7 +28,6 @@ func NewServer(host string, port string, sessionSecret string, isDev bool) *Serv
 		utils.RenderErrorTemplate(w, "This page doesn't exist.", http.StatusNotFound)
 	})
 
-	sessionManager := utils.NewSessionManager([]byte(sessionSecret))
 	var spotifyAuth *models.SpotifyAuthenticator
 	if isDev {
 		spotifyAuth = models.NewSpotifyAuthenticator(host + port)
@@ -41,14 +44,13 @@ func NewServer(host string, port string, sessionSecret string, isDev bool) *Serv
 
 	// serve images, JS files, etc.
 	router.PathPrefix("/assets/").Handler(http.FileServer(http.Dir(".")))
-	// http.Handle("/", router)
-	return &Server{host: host, port: port, router: router}
+	server.UseHandler(router)
+	return &server
 }
 
 func (server *Server) Start() {
 	go models.HandleUsers()
-	log.Printf("Spinning up the server at %s...", server.host)
-	// http.ListenAndServe(utils.GetPort(), nil)
-	err := http.ListenAndServe(server.port, server.router)
+	log.Printf("Spinning up the server at %s%s...", server.host, server.port)
+	err := http.ListenAndServe(server.port, server)
 	log.Printf(err.Error())
 }
