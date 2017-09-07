@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	SPOTIFY_STATE_KEY = "spotify_auth_state"
+	SESSION_KEY = "spotitube_session"
 )
 
 type SessionManager struct {
@@ -20,7 +20,7 @@ func NewSessionManager(authKey []byte) *SessionManager {
 }
 
 func (manager *SessionManager) Get(r *http.Request, key string) string {
-	session, err := manager.store.Get(r, SPOTIFY_STATE_KEY)
+	session, err := manager.store.Get(r, SESSION_KEY)
 	if err != nil {
 		log.Printf("SessionManager Get: Error getting session from store: %s", err.Error())
 		return ""
@@ -36,7 +36,7 @@ func (manager *SessionManager) Get(r *http.Request, key string) string {
 }
 
 func (manager *SessionManager) Set(r *http.Request, w http.ResponseWriter, key string, value string) (err error) {
-	session, err := manager.store.Get(r, SPOTIFY_STATE_KEY)
+	session, err := manager.store.Get(r, SESSION_KEY)
 	if err != nil {
 		log.Printf("SessionManager Set: Error getting session from store: %s", err.Error())
 		return err
@@ -48,7 +48,7 @@ func (manager *SessionManager) Set(r *http.Request, w http.ResponseWriter, key s
 }
 
 func (manager *SessionManager) Delete(r *http.Request, w http.ResponseWriter, key string) (err error) {
-	session, err := manager.store.Get(r, SPOTIFY_STATE_KEY)
+	session, err := manager.store.Get(r, SESSION_KEY)
 	if err != nil {
 		log.Printf("SessionManager Delete: Error getting session from store: %s", err.Error())
 		return

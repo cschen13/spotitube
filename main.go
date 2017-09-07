@@ -21,7 +21,7 @@ func main() {
 		sessionSecret = utils.GenerateRandStr(64)
 	}
 
-	s := server.NewServer(scheme+hostname, getPort(), sessionSecret, isDev)
+	s := server.NewServer(scheme+hostname, getPort(), sessionSecret, 1, isDev)
 	s.Start()
 }
 

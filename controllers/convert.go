@@ -12,10 +12,11 @@ const PLAYLIST_ID_PARAM = "playlistId"
 
 type ConvertController struct {
 	sessionManager *utils.SessionManager
+	currentUser    *utils.CurrentUserManager
 }
 
-func NewConvertController(sessionManager *utils.SessionManager) *ConvertController {
-	return &ConvertController{sessionManager: sessionManager}
+func NewConvertController(sessionManager *utils.SessionManager, currentUser *utils.CurrentUserManager) *ConvertController {
+	return &ConvertController{sessionManager: sessionManager, currentUser: currentUser}
 }
 
 func (ctrl *ConvertController) Register(router *mux.Router) {

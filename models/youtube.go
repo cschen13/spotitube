@@ -19,14 +19,14 @@ type YoutubeAuthenticator struct {
 	context context.Context
 }
 
-func NewYoutubeAuthenticator(json string, port string, isDev bool) *YoutubeAuthenticator {
+func NewYoutubeAuthenticator(json string, addr string, isDev bool) *YoutubeAuthenticator {
 	config, err := google.ConfigFromJSON([]byte(json), youtube.YoutubeScope)
 	if err != nil {
 		log.Fatalf("Unable to parse client secret file to config: %v", err)
 	}
 
 	if isDev {
-		config.RedirectURL = "http://localhost" + port + "/callback/" + YOUTUBE_SERVICE
+		config.RedirectURL = addr + "/callback/" + YOUTUBE_SERVICE
 	}
 
 	return &YoutubeAuthenticator{

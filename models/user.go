@@ -16,7 +16,7 @@ func NewUser(state string, r *http.Request, auth Authenticator) (*User, error) {
 		clients: make(map[string]Client),
 	}
 
-	err := user.AddClient(state, r, auth)
+	err := user.AddClient(r, auth)
 	if err != nil {
 		log.Printf("Error adding new user with state %s: %s", state, err.Error())
 		return nil, err
@@ -24,6 +24,28 @@ func NewUser(state string, r *http.Request, auth Authenticator) (*User, error) {
 	return user, nil
 }
 
+func (user *User) GetState() string {
+	return user.state
+}
+
+func (user *User) AddClient(r *http.Request, auth Authenticator) error {
+	client, err := auth.newClient(user.state, r)
+	if err != nil {
+		return err
+	}
+
+	user.clients[auth.GetType()] = client
+	return nil
+}
+
+func (user *User) GetClient(key string) Client {
+	if client, present := user.clients[key]; present {
+		return client
+	}
+	return nil
+}
+
+// TODO: DB
 var (
 	users   = make(map[string]*User)
 	addChan = make(chan addReq)
@@ -37,16 +59,6 @@ type addReq struct {
 
 func (user *User) Add() {
 	addChan <- addReq{user.state, user}
-}
-
-func (user *User) AddClient(state string, r *http.Request, auth Authenticator) error {
-	client, err := auth.newClient(state, r)
-	if err != nil {
-		return err
-	}
-
-	user.clients[auth.GetType()] = client
-	return nil
 }
 
 type getReq struct {
@@ -78,11 +90,4 @@ func HandleUsers() {
 			}
 		}
 	}
-}
-
-func (user *User) GetClient(key string) Client {
-	if client, present := user.clients[key]; present {
-		return client
-	}
-	return nil
 }

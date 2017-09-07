@@ -15,10 +15,11 @@ const (
 
 type PlaylistController struct {
 	sessionManager *utils.SessionManager
+	currentUser    *utils.CurrentUserManager
 }
 
-func NewPlaylistController(sessionManager *utils.SessionManager) *PlaylistController {
-	return &PlaylistController{sessionManager: sessionManager}
+func NewPlaylistController(sessionManager *utils.SessionManager, currentUser *utils.CurrentUserManager) *PlaylistController {
+	return &PlaylistController{sessionManager: sessionManager, currentUser: currentUser}
 }
 
 func (ctrl *PlaylistController) Register(router *mux.Router) {
@@ -27,7 +28,7 @@ func (ctrl *PlaylistController) Register(router *mux.Router) {
 
 func (ctrl *PlaylistController) getPlaylistsHandler(w http.ResponseWriter, r *http.Request) {
 	// check the request for a state cookie
-	state := ctrl.sessionManager.Get(r, USER_STATE_KEY)
+	state := ctrl.sessionManager.Get(r, utils.USER_STATE_KEY)
 	if state == "" {
 		log.Print("No cookie for user found")
 		http.Redirect(w, r, "login", http.StatusFound)
