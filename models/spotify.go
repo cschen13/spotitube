@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"github.com/zmb3/spotify"
 	"golang.org/x/oauth2"
 	"net/http"
@@ -68,9 +69,9 @@ func (client *spotifyClient) GetPlaylists(page string) (playlistPage *PlaylistsP
 		return
 	}
 
-	playlists := make([]PlaylistInfo, len(simplePlaylistPage.Playlists))
+	playlists := make([]Playlist, len(simplePlaylistPage.Playlists))
 	for i, playlist := range simplePlaylistPage.Playlists {
-		playlists[i] = &spotifyPlaylistInfo{playlist}
+		playlists[i] = &spotifyPlaylist{playlist}
 	}
 
 	playlistPage = &PlaylistsPage{Playlists: playlists, PageNumber: pageNumber}
@@ -85,26 +86,38 @@ func (client *spotifyClient) GetPlaylists(page string) (playlistPage *PlaylistsP
 	return
 }
 
-type spotifyPlaylistInfo struct {
+func (client *spotifyClient) CreatePlaylist(name string) (Playlist, error) {
+	return nil, errors.New("Unimplemented")
+}
+
+func (client *spotifyClient) GetPlaylistTracks(playlist Playlist) []PlaylistTrack {
+	return nil
+}
+
+func (client *spotifyClient) InsertTrack(playlist Playlist, track PlaylistTrack) (bool, error) {
+	return false, errors.New("Unimplemented")
+}
+
+type spotifyPlaylist struct {
 	obj spotify.SimplePlaylist
 }
 
-func (playlist *spotifyPlaylistInfo) GetID() string {
+func (playlist *spotifyPlaylist) GetID() string {
 	return playlist.obj.ID.String()
 }
 
-func (playlist *spotifyPlaylistInfo) GetName() string {
+func (playlist *spotifyPlaylist) GetName() string {
 	return playlist.obj.Name
 }
 
-func (playlist *spotifyPlaylistInfo) GetURL() string {
+func (playlist *spotifyPlaylist) GetURL() string {
 	if url, present := playlist.obj.ExternalURLs["spotify"]; present {
 		return url
 	}
 	return ""
 }
 
-func (playlist *spotifyPlaylistInfo) GetCoverURL() string {
+func (playlist *spotifyPlaylist) GetCoverURL() string {
 	if len(playlist.obj.Images) > 0 {
 		return playlist.obj.Images[0].URL
 	}

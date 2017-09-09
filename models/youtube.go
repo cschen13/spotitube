@@ -100,3 +100,15 @@ type youtubeClient struct {
 func (client *youtubeClient) GetPlaylists(pageToken string) (playlistPage *PlaylistsPage, err error) {
 	return nil, errors.New("youtube: GetPlaylists is unimplemented.")
 }
+
+func (client *youtubeClient) CreatePlaylist(name string) (Playlist, error) {
+	return nil, errors.New("Unimplemented")
+}
+
+func (client *youtubeClient) GetPlaylistTracks(playlist Playlist) []PlaylistTrack {
+	return nil
+}
+
+func (client *youtubeClient) InsertTrack(playlist Playlist, track PlaylistTrack) (bool, error) {
+	return false, errors.New("Unimplemented")
+}

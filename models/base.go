@@ -12,18 +12,26 @@ type Authenticator interface {
 
 type Client interface {
 	GetPlaylists(string) (*PlaylistsPage, error)
+	CreatePlaylist(string) (Playlist, error)
+	GetPlaylistTracks(Playlist) []PlaylistTrack
+	InsertTrack(Playlist, PlaylistTrack) (bool, error)
 }
 
 type PlaylistsPage struct {
-	Playlists         []PlaylistInfo
+	Playlists         []Playlist
 	PageNumber        int
 	NextPageParam     string
 	PreviousPageParam string
 }
 
-type PlaylistInfo interface {
+type Playlist interface {
 	GetID() string
 	GetName() string
 	GetURL() string
 	GetCoverURL() string
+}
+
+type PlaylistTrack interface {
+	GetTitle() string
+	GetArtist() string //Main artist
 }
