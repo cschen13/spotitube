@@ -12,8 +12,9 @@ type Authenticator interface {
 
 type Client interface {
 	GetPlaylists(string) (*PlaylistsPage, error)
+	GetPlaylistInfo(string) (Playlist, error)
 	CreatePlaylist(string) (Playlist, error)
-	GetPlaylistTracks(Playlist) []PlaylistTrack
+	GetPlaylistTracks(Playlist, string) ([]PlaylistTrack, bool, error)
 	InsertTrack(Playlist, PlaylistTrack) (bool, error)
 }
 

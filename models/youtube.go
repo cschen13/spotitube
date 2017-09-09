@@ -101,12 +101,16 @@ func (client *youtubeClient) GetPlaylists(pageToken string) (playlistPage *Playl
 	return nil, errors.New("youtube: GetPlaylists is unimplemented.")
 }
 
+func (client *youtubeClient) GetPlaylistInfo(playlistId string) (Playlist, error) {
+	return nil, errors.New("Unimplemented")
+}
+
 func (client *youtubeClient) CreatePlaylist(name string) (Playlist, error) {
 	return nil, errors.New("Unimplemented")
 }
 
-func (client *youtubeClient) GetPlaylistTracks(playlist Playlist) []PlaylistTrack {
-	return nil
+func (client *youtubeClient) GetPlaylistTracks(playlist Playlist, page string) ([]PlaylistTrack, bool, error) {
+	return nil, true, errors.New("Unimplemented")
 }
 
 func (client *youtubeClient) InsertTrack(playlist Playlist, track PlaylistTrack) (bool, error) {
