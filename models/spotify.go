@@ -72,7 +72,7 @@ func (client *spotifyClient) GetPlaylists(page string) (playlistPage *PlaylistsP
 
 	playlists := make([]Playlist, len(simplePlaylistPage.Playlists))
 	for i, playlist := range simplePlaylistPage.Playlists {
-		playlists[i] = &spotifyPlaylist{playlist}
+		playlists[i] = &spotifyPlaylist{&playlist}
 	}
 
 	playlistPage = &PlaylistsPage{Playlists: playlists, PageNumber: pageNumber}
@@ -102,7 +102,7 @@ func (client *spotifyClient) GetPlaylistInfo(playlistId string) (Playlist, error
 		return nil, err
 	}
 
-	return &spotifyPlaylist{fullPlaylist.SimplePlaylist}, nil
+	return &spotifyPlaylist{&fullPlaylist.SimplePlaylist}, nil
 }
 
 // GetPlaylistTracks gets page number "page" of PlaylistTracks from playlist.
@@ -131,19 +131,19 @@ func (client *spotifyClient) GetPlaylistTracks(playlist Playlist, page string) (
 
 	tracks = make([]PlaylistTrack, len(trackPage.Tracks))
 	for i, track := range trackPage.Tracks {
-		tracks[i] = &spotifyTrack{track.Track.SimpleTrack}
+		tracks[i] = &spotifyTrack{&track.Track.SimpleTrack}
 	}
 
 	lastPage = len(tracks) < SPOTIFY_PLAYLIST_TRACKS_PAGE_LIMIT
 	return
 }
 
-func (client *spotifyClient) InsertTrack(playlist Playlist, track PlaylistTrack) (bool, error) {
-	return false, errors.New("Unimplemented")
+func (client *spotifyClient) InsertTrack(playlist Playlist, track PlaylistTrack) error {
+	return errors.New("Unimplemented")
 }
 
 type spotifyPlaylist struct {
-	obj spotify.SimplePlaylist
+	obj *spotify.SimplePlaylist
 }
 
 func (playlist *spotifyPlaylist) GetID() string {
@@ -169,7 +169,7 @@ func (playlist *spotifyPlaylist) GetCoverURL() string {
 }
 
 type spotifyTrack struct {
-	obj spotify.SimpleTrack
+	obj *spotify.SimpleTrack
 }
 
 func (track *spotifyTrack) GetTitle() string {
