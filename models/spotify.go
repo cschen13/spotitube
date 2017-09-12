@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/zmb3/spotify"
 	"golang.org/x/oauth2"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -72,7 +73,8 @@ func (client *spotifyClient) GetPlaylists(page string) (playlistPage *PlaylistsP
 
 	playlists := make([]Playlist, len(simplePlaylistPage.Playlists))
 	for i, playlist := range simplePlaylistPage.Playlists {
-		playlists[i] = &spotifyPlaylist{&playlist}
+		next := playlist
+		playlists[i] = &spotifyPlaylist{&next}
 	}
 
 	playlistPage = &PlaylistsPage{Playlists: playlists, PageNumber: pageNumber}
@@ -97,6 +99,7 @@ func (client *spotifyClient) GetPlaylistInfo(playlistId string) (Playlist, error
 		return nil, err
 	}
 
+	log.Printf("Finding playlist %s for user %s", spotify.ID(playlistId), user.ID)
 	fullPlaylist, err := client.GetPlaylist(user.ID, spotify.ID(playlistId))
 	if err != nil {
 		return nil, err
@@ -130,8 +133,10 @@ func (client *spotifyClient) GetPlaylistTracks(playlist Playlist, page string) (
 	}
 
 	tracks = make([]PlaylistTrack, len(trackPage.Tracks))
-	for i, track := range trackPage.Tracks {
-		tracks[i] = &spotifyTrack{&track.Track.SimpleTrack}
+	for i, playlistTrack := range trackPage.Tracks {
+		newTrack := playlistTrack.Track.SimpleTrack
+		tracks[i] = &spotifyTrack{&newTrack}
+		log.Printf("%d: %s - %s", i, tracks[i].GetArtist(), tracks[i].GetTitle())
 	}
 
 	lastPage = len(tracks) < SPOTIFY_PLAYLIST_TRACKS_PAGE_LIMIT

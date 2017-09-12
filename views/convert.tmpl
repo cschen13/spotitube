@@ -3,7 +3,28 @@
 	{{template "head"}}
 	<body>
 		<div class="container mt-5">
-			<h1>Convert Playlist</h1>
+			<h1>{{name .Playlist}}</h1>
+			{{if .Tracks}}
+			<button class="btn btn-primary">Convert</button>
+			<table class="table">
+				<thead>
+					<tr>
+						<th>Title</th>
+						<th>Artist</th>
+					</tr>
+				</thead>
+				<tbody>
+					{{range .Tracks}}
+					<tr>
+						<td>{{title .}}</td>
+						<td>{{artist .}}</td>
+					</tr>
+					{{end}}
+				</tbody>
+			</table>
+			{{else}}
+			<p>Looks like you don't have any playlists. Try adding one and then refresh the page to see it!</p>
+			{{end}}
 		</div>
 	</body>
 </html>

@@ -73,6 +73,7 @@ func (ctrl *ConvertController) convertSpotifyHandler(w http.ResponseWriter, r *h
 	utils.RenderTemplate(w, "convert", page)
 }
 
+// TODO: Make getting tracks its own endpoint; call from front end
 func (ctrl *ConvertController) getAllTracks(spotify models.Client, playlist models.Playlist) ([]models.PlaylistTrack, error) {
 	pageNum := 1
 	tracks, lastPage, err := spotify.GetPlaylistTracks(playlist, strconv.Itoa(pageNum))
@@ -89,6 +90,8 @@ func (ctrl *ConvertController) getAllTracks(spotify models.Client, playlist mode
 		}
 		tracks = append(tracks, nextPageTracks...)
 	}
+
+	log.Printf("Found %d tracks in playlist %s", len(tracks), playlist.GetName())
 
 	return tracks, nil
 }

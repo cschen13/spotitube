@@ -20,6 +20,12 @@ var FUNC_MAP = template.FuncMap{
 	"coverUrl": func(playlist models.Playlist) string {
 		return playlist.GetCoverURL()
 	},
+	"title": func(track models.PlaylistTrack) string {
+		return track.GetTitle()
+	},
+	"artist": func(track models.PlaylistTrack) string {
+		return track.GetArtist()
+	},
 }
 
 func RenderTemplate(w http.ResponseWriter, tmpl string, p interface{}) {
