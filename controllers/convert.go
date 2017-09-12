@@ -9,7 +9,10 @@ import (
 	"strconv"
 )
 
-const PLAYLIST_ID_PARAM = "playlistId"
+const (
+	PLAYLIST_ID_PARAM = "playlistId"
+	OWNER_ID_PARAM    = "ownerId"
+)
 
 type ConvertController struct {
 	sessionManager *utils.SessionManager
@@ -21,11 +24,17 @@ func NewConvertController(sessionManager *utils.SessionManager, currentUser *uti
 }
 
 func (ctrl *ConvertController) Register(router *mux.Router) {
-	router.HandleFunc("/convert-"+models.SPOTIFY_SERVICE+"/{"+PLAYLIST_ID_PARAM+"}", ctrl.convertSpotifyHandler)
+	router.HandleFunc("/convert-"+models.SPOTIFY_SERVICE+"/{"+OWNER_ID_PARAM+"}/{"+PLAYLIST_ID_PARAM+"}", ctrl.convertSpotifyHandler)
 }
 
 func (ctrl *ConvertController) convertSpotifyHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
+	ownerId, present := vars[OWNER_ID_PARAM]
+	if !present {
+		utils.RenderErrorTemplate(w, "URL is missing an owner ID", http.StatusUnprocessableEntity)
+		return
+	}
+
 	playlistId, present := vars[PLAYLIST_ID_PARAM]
 	if !present {
 		utils.RenderErrorTemplate(w, "URL is missing a playlist ID", http.StatusUnprocessableEntity)
@@ -54,7 +63,7 @@ func (ctrl *ConvertController) convertSpotifyHandler(w http.ResponseWriter, r *h
 		return
 	}
 
-	playlist, err := spotify.GetPlaylistInfo(playlistId)
+	playlist, err := spotify.GetPlaylistInfo(ownerId, playlistId)
 	if err != nil {
 		log.Printf("convert: error getting playlist info")
 		log.Print(err)

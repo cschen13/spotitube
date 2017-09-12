@@ -104,7 +104,7 @@ func (client *youtubeClient) GetPlaylists(pageToken string) (playlistPage *Playl
 	return nil, errors.New("youtube: GetPlaylists is unimplemented.")
 }
 
-func (client *youtubeClient) GetPlaylistInfo(playlistId string) (Playlist, error) {
+func (client *youtubeClient) GetPlaylistInfo(channelId, playlistId string) (Playlist, error) {
 	return nil, errors.New("Unimplemented")
 }
 
@@ -160,7 +160,7 @@ func (client *youtubeClient) InsertTrack(playlist Playlist, track PlaylistTrack)
 }
 
 func (client *youtubeClient) searchForMatchingVideo(track PlaylistTrack) (videoId string, err error) {
-	call := client.Search.List("snippet").Q(track.GetArtist() + " " + track.GetTitle() + " music video").Type("video")
+	call := client.Search.List("snippet").Q(track.GetArtist() + " " + track.GetTitle() + " video").Type("video")
 	response, err := call.Do()
 	if err != nil {
 		return
@@ -178,6 +178,10 @@ type youtubePlaylist struct {
 
 func (playlist *youtubePlaylist) GetID() string {
 	return playlist.obj.Id
+}
+
+func (playlist *youtubePlaylist) GetOwnerID() string {
+	return playlist.obj.Snippet.ChannelId
 }
 
 func (playlist *youtubePlaylist) GetName() string {

@@ -93,14 +93,9 @@ func (client *spotifyClient) CreatePlaylist(name string) (Playlist, error) {
 	return nil, errors.New("Unimplemented")
 }
 
-func (client *spotifyClient) GetPlaylistInfo(playlistId string) (Playlist, error) {
-	user, err := client.CurrentUser()
-	if err != nil {
-		return nil, err
-	}
-
-	log.Printf("Finding playlist %s for user %s", spotify.ID(playlistId), user.ID)
-	fullPlaylist, err := client.GetPlaylist(user.ID, spotify.ID(playlistId))
+func (client *spotifyClient) GetPlaylistInfo(ownerId, playlistId string) (Playlist, error) {
+	log.Printf("Finding playlist %s belonging to user %s", spotify.ID(playlistId), ownerId)
+	fullPlaylist, err := client.GetPlaylist(ownerId, spotify.ID(playlistId))
 	if err != nil {
 		return nil, err
 	}
@@ -119,15 +114,10 @@ func (client *spotifyClient) GetPlaylistTracks(playlist Playlist, page string) (
 		}
 	}
 
-	user, err := client.CurrentUser()
-	if err != nil {
-		return
-	}
-
 	limit := SPOTIFY_PLAYLIST_TRACKS_PAGE_LIMIT
 	offset := (pageNumber - 1) * SPOTIFY_PLAYLIST_TRACKS_PAGE_LIMIT
 	options := spotify.Options{Limit: &limit, Offset: &offset}
-	trackPage, err := client.GetPlaylistTracksOpt(user.ID, spotify.ID(playlist.GetID()), &options, "")
+	trackPage, err := client.GetPlaylistTracksOpt(playlist.GetOwnerID(), spotify.ID(playlist.GetID()), &options, "")
 	if err != nil {
 		return
 	}
@@ -136,7 +126,7 @@ func (client *spotifyClient) GetPlaylistTracks(playlist Playlist, page string) (
 	for i, playlistTrack := range trackPage.Tracks {
 		newTrack := playlistTrack.Track.SimpleTrack
 		tracks[i] = &spotifyTrack{&newTrack}
-		log.Printf("%d: %s - %s", i, tracks[i].GetArtist(), tracks[i].GetTitle())
+		// log.Printf("%d: %s - %s", i, tracks[i].GetArtist(), tracks[i].GetTitle())
 	}
 
 	lastPage = len(tracks) < SPOTIFY_PLAYLIST_TRACKS_PAGE_LIMIT
@@ -153,6 +143,10 @@ type spotifyPlaylist struct {
 
 func (playlist *spotifyPlaylist) GetID() string {
 	return playlist.obj.ID.String()
+}
+
+func (playlist *spotifyPlaylist) GetOwnerID() string {
+	return playlist.obj.Owner.ID
 }
 
 func (playlist *spotifyPlaylist) GetName() string {

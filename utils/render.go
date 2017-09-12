@@ -11,6 +11,9 @@ var FUNC_MAP = template.FuncMap{
 	"id": func(playlist models.Playlist) string {
 		return playlist.GetID()
 	},
+	"owner": func(playlist models.Playlist) string {
+		return playlist.GetOwnerID()
+	},
 	"name": func(playlist models.Playlist) string {
 		return playlist.GetName()
 	},

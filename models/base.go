@@ -12,7 +12,7 @@ type Authenticator interface {
 
 type Client interface {
 	GetPlaylists(string) (*PlaylistsPage, error)
-	GetPlaylistInfo(string) (Playlist, error)
+	GetPlaylistInfo(string, string) (Playlist, error)
 	CreatePlaylist(string) (Playlist, error)
 	GetPlaylistTracks(Playlist, string) ([]PlaylistTrack, bool, error)
 	InsertTrack(Playlist, PlaylistTrack) (bool, error)
@@ -32,6 +32,7 @@ type ConvertPage struct {
 
 type Playlist interface {
 	GetID() string
+	GetOwnerID() string
 	GetName() string
 	GetURL() string
 	GetCoverURL() string
