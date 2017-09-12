@@ -9,6 +9,7 @@ import (
 	youtube "google.golang.org/api/youtube/v3"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -108,18 +109,12 @@ func (client *youtubeClient) GetPlaylistInfo(playlistId string) (Playlist, error
 }
 
 func (client *youtubeClient) CreatePlaylist(name string) (Playlist, error) {
-	resource := make(map[string]interface{})
-	resource["snippet"] = make(map[string]interface{})
-	snippet := resource["snippet"].(map[string]interface{})
-	snippet["title"] = name
-	jsonObj, err := json.Marshal(resource)
-	if err != nil {
-		log.Printf("youtube: Failed to encode JSON for playlist resource")
-		return nil, err
-	}
-
 	playlist := &youtube.Playlist{}
-	if err := json.NewDecoder(strings.NewReader(string(jsonObj))).Decode(&playlist); err != nil {
+	properties := map[string]string{
+		"snippet.title": name,
+	}
+	res := createResource(properties)
+	if err := json.NewDecoder(strings.NewReader(res)).Decode(&playlist); err != nil {
 		log.Printf("youtube: Failed to decode JSON into playlist resource")
 		return nil, err
 	}
@@ -137,8 +132,44 @@ func (client *youtubeClient) GetPlaylistTracks(playlist Playlist, page string) (
 	return nil, true, errors.New("Unimplemented")
 }
 
-func (client *youtubeClient) InsertTrack(playlist Playlist, track PlaylistTrack) error {
-	return errors.New("Unimplemented")
+func (client *youtubeClient) InsertTrack(playlist Playlist, track PlaylistTrack) (bool, error) {
+	playlistItem := &youtube.PlaylistItem{}
+	videoId, err := client.searchForMatchingVideo(track)
+	if err != nil {
+		log.Printf("youtube: Error searching for track")
+		return false, err
+	} else if videoId == "" {
+		log.Printf("youtube: Zero search results for track %s - %s", track.GetArtist(), track.GetTitle())
+		return false, nil
+	}
+
+	properties := map[string]string{
+		"snippet.playlistId":         playlist.GetID(),
+		"snippet.resourceId.kind":    "youtube#video",
+		"snippet.resourceId.videoId": videoId,
+	}
+	res := createResource(properties)
+	if err := json.NewDecoder(strings.NewReader(res)).Decode(&playlistItem); err != nil {
+		log.Printf("youtube: Failed to decode JSON into playlist item resource")
+		return false, err
+	}
+
+	call := client.PlaylistItems.Insert("id", playlistItem)
+	_, err = call.Do()
+	return true, err
+}
+
+func (client *youtubeClient) searchForMatchingVideo(track PlaylistTrack) (videoId string, err error) {
+	call := client.Search.List("snippet").Q(track.GetArtist() + " " + track.GetTitle() + " music video").Type("video")
+	response, err := call.Do()
+	if err != nil {
+		return
+	}
+
+	if len(response.Items) > 0 {
+		videoId = response.Items[0].Id.VideoId
+	}
+	return
 }
 
 type youtubePlaylist struct {
@@ -162,4 +193,46 @@ func (playlist *youtubePlaylist) GetCoverURL() string {
 		return thumbnails.Default.Url
 	}
 	return ""
+}
+
+func addPropertyToResource(ref map[string]interface{}, keys []string, value string, count int) map[string]interface{} {
+	for k := count; k < (len(keys) - 1); k++ {
+		switch val := ref[keys[k]].(type) {
+		case map[string]interface{}:
+			ref[keys[k]] = addPropertyToResource(val, keys, value, (k + 1))
+		case nil:
+			next := make(map[string]interface{})
+			ref[keys[k]] = addPropertyToResource(next, keys, value, (k + 1))
+		}
+	}
+	// Only include properties that have values.
+	if count == len(keys)-1 && value != "" {
+		valueKey := keys[len(keys)-1]
+		if valueKey[len(valueKey)-2:] == "[]" {
+			ref[valueKey[0:len(valueKey)-2]] = strings.Split(value, ",")
+		} else if len(valueKey) > 4 && valueKey[len(valueKey)-4:] == "|int" {
+			ref[valueKey[0:len(valueKey)-4]], _ = strconv.Atoi(value)
+		} else if value == "true" {
+			ref[valueKey] = true
+		} else if value == "false" {
+			ref[valueKey] = false
+		} else {
+			ref[valueKey] = value
+		}
+	}
+	return ref
+}
+
+func createResource(properties map[string]string) string {
+	resource := make(map[string]interface{})
+	for key, value := range properties {
+		keys := strings.Split(key, ".")
+		ref := addPropertyToResource(resource, keys, value, 0)
+		resource = ref
+	}
+	propJson, err := json.Marshal(resource)
+	if err != nil {
+		log.Fatal("cannot encode to JSON ", err)
+	}
+	return string(propJson)
 }

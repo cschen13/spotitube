@@ -15,7 +15,7 @@ type Client interface {
 	GetPlaylistInfo(string) (Playlist, error)
 	CreatePlaylist(string) (Playlist, error)
 	GetPlaylistTracks(Playlist, string) ([]PlaylistTrack, bool, error)
-	InsertTrack(Playlist, PlaylistTrack) error
+	InsertTrack(Playlist, PlaylistTrack) (bool, error)
 }
 
 type PlaylistsPage struct {

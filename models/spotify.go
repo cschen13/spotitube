@@ -138,8 +138,8 @@ func (client *spotifyClient) GetPlaylistTracks(playlist Playlist, page string) (
 	return
 }
 
-func (client *spotifyClient) InsertTrack(playlist Playlist, track PlaylistTrack) error {
-	return errors.New("Unimplemented")
+func (client *spotifyClient) InsertTrack(playlist Playlist, track PlaylistTrack) (bool, error) {
+	return false, errors.New("Unimplemented")
 }
 
 type spotifyPlaylist struct {
