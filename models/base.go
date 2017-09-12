@@ -25,6 +25,11 @@ type PlaylistsPage struct {
 	PreviousPageParam string
 }
 
+type ConvertPage struct {
+	Playlist Playlist
+	Tracks   []PlaylistTrack
+}
+
 type Playlist interface {
 	GetID() string
 	GetName() string

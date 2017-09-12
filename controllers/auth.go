@@ -14,11 +14,11 @@ const (
 
 type AuthController struct {
 	sessionManager *utils.SessionManager
-	auths          *map[string]models.Authenticator
+	auths          map[string]models.Authenticator
 	currentUser    *utils.CurrentUserManager
 }
 
-func NewAuthController(sessionManager *utils.SessionManager, auths *map[string]models.Authenticator, currentUser *utils.CurrentUserManager) *AuthController {
+func NewAuthController(sessionManager *utils.SessionManager, auths map[string]models.Authenticator, currentUser *utils.CurrentUserManager) *AuthController {
 	return &AuthController{sessionManager: sessionManager, auths: auths, currentUser: currentUser}
 }
 
@@ -29,7 +29,7 @@ func (ctrl *AuthController) Register(router *mux.Router) {
 
 func (ctrl *AuthController) initiateAuthHandler(w http.ResponseWriter, r *http.Request) {
 	service := mux.Vars(r)[SERVICE_PARAM]
-	auth, present := (*ctrl.auths)[service]
+	auth, present := ctrl.auths[service]
 	if !present {
 		log.Printf("Unrecognized service %s", service)
 		utils.RenderErrorTemplate(w, "An error occurred while logging in.", http.StatusInternalServerError)
@@ -55,7 +55,7 @@ func (ctrl *AuthController) initiateAuthHandler(w http.ResponseWriter, r *http.R
 
 func (ctrl *AuthController) completeAuthHandler(w http.ResponseWriter, r *http.Request) {
 	service := mux.Vars(r)[SERVICE_PARAM]
-	auth, present := (*ctrl.auths)[service]
+	auth, present := ctrl.auths[service]
 	if !present {
 		log.Printf("Unrecognized service %s", service)
 		utils.RenderErrorTemplate(w, "An error occurred while logging in.", http.StatusInternalServerError)

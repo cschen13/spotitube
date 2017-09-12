@@ -51,7 +51,7 @@ func NewServer(host string, port string, sessionSecret string, userManagerKey in
 	auths[spotifyAuth.GetType()] = spotifyAuth
 	auths[youtubeAuth.GetType()] = youtubeAuth
 
-	authCtrl := controllers.NewAuthController(sessionManager, &auths, currentUser)
+	authCtrl := controllers.NewAuthController(sessionManager, auths, currentUser)
 	playlistCtrl := controllers.NewPlaylistController(sessionManager, currentUser)
 	convertCtrl := controllers.NewConvertController(sessionManager, currentUser)
 	authCtrl.Register(router)
