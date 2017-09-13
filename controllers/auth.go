@@ -25,6 +25,7 @@ func NewAuthController(sessionManager *utils.SessionManager, auths map[string]mo
 func (ctrl *AuthController) Register(router *mux.Router) {
 	router.HandleFunc("/login/{"+SERVICE_PARAM+"}", ctrl.initiateAuthHandler)
 	router.HandleFunc("/callback/{"+SERVICE_PARAM+"}", ctrl.completeAuthHandler)
+	router.HandleFunc("/logout", ctrl.logoutHandler)
 }
 
 func (ctrl *AuthController) initiateAuthHandler(w http.ResponseWriter, r *http.Request) {
@@ -87,4 +88,16 @@ func (ctrl *AuthController) completeAuthHandler(w http.ResponseWriter, r *http.R
 	}
 
 	http.Redirect(w, r, "/playlists", http.StatusFound)
+}
+
+func (ctrl *AuthController) logoutHandler(w http.ResponseWriter, r *http.Request) {
+	models.DeleteUser(ctrl.sessionManager.Get(r, utils.USER_STATE_KEY))
+	err := ctrl.sessionManager.Delete(r, w, utils.USER_STATE_KEY)
+	if err != nil {
+		log.Printf("Error logging out:")
+		log.Print(err)
+		utils.RenderErrorTemplate(w, "An error occurred while logging out.", http.StatusInternalServerError)
+	}
+
+	http.Redirect(w, r, "/", http.StatusFound)
 }

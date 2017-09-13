@@ -3,7 +3,14 @@
 	{{template "head"}}
 	<body>
 		<div class="container mt-5">
-			<h1>Your Playlists</h1>
+			<div class="row">
+				<div class="col-auto mr-auto">
+					<h1>Your Playlists</h1>
+				</div>
+				<div class="col-auto">
+					<a href="/logout">Logout</a>
+				</div>
+			</div>
 			{{if .Playlists}}
 				<div class="row">
 				{{range .Playlists}}

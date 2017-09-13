@@ -47,9 +47,10 @@ func (user *User) GetClient(key string) Client {
 
 // TODO: DB
 var (
-	users   = make(map[string]*User)
-	addChan = make(chan addReq)
-	getChan = make(chan getReq)
+	users      = make(map[string]*User)
+	addChan    = make(chan addReq)
+	getChan    = make(chan getReq)
+	deleteChan = make(chan string)
 )
 
 type addReq struct {
@@ -72,6 +73,10 @@ func GetUser(state string) *User {
 	return <-res
 }
 
+func DeleteUser(state string) {
+	deleteChan <- state
+}
+
 func HandleUsers() {
 	for {
 		select {
@@ -88,6 +93,8 @@ func HandleUsers() {
 			} else {
 				req.res <- nil
 			}
+		case state := <-deleteChan:
+			delete(users, state)
 		}
 	}
 }
