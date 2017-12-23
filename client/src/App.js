@@ -1,17 +1,24 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import './App.css';
+import { Header } from 'semantic-ui-react'
 
 class App extends Component {
+
   render() {
+    console.log(process.env.SPOTITUBE_HOST);
+
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
+      <div className="ui main container">
+        <header>
+          <Header as="h1">SpotiTube</Header>
         </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
+        <p>
+          Convert your Spotify playlists to YouTube music video playlists.
+        </p>
+        <p>
+          <a href={(process.env.SPOTITUBE_HOST ? '' : 'http://localhost:8080') + '/login/spotify'}>
+            Login with Spotify
+          </a> to get started.
         </p>
       </div>
     );

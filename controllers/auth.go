@@ -87,7 +87,7 @@ func (ctrl *AuthController) completeAuthHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	http.Redirect(w, r, "/playlists", http.StatusFound)
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 func (ctrl *AuthController) logoutHandler(w http.ResponseWriter, r *http.Request) {

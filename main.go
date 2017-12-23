@@ -9,11 +9,11 @@ import (
 func main() {
 	hostname := os.Getenv("SPOTITUBE_HOST")
 	scheme := "https://"
-	isDev := false
+	devPort := getPort() // Development server hosting the React app
 	if hostname == "" {
 		hostname = "localhost"
 		scheme = "http://"
-		isDev = true
+		devPort = ":3000"
 	}
 
 	sessionSecret := os.Getenv("SPOTITUBE_SESSION_SECRET")
@@ -21,7 +21,7 @@ func main() {
 		sessionSecret = utils.GenerateRandStr(64)
 	}
 
-	s := server.NewServer(scheme+hostname, getPort(), sessionSecret, 1, isDev)
+	s := server.NewServer(scheme+hostname, getPort(), sessionSecret, 1, devPort)
 	s.Start()
 }
 

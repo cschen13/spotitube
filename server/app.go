@@ -18,7 +18,8 @@ type Server struct {
 	port string
 }
 
-func NewServer(host string, port string, sessionSecret string, userManagerKey int, isDev bool) *Server {
+func NewServer(host string, port string, sessionSecret string, userManagerKey int, devPort string) *Server {
+	isDev := port != devPort
 	server := Server{negroni.Classic(), host, port}
 	sessionManager := utils.NewSessionManager([]byte(sessionSecret))
 	currentUser := utils.NewCurrentUserManager(userManagerKey)
@@ -26,12 +27,9 @@ func NewServer(host string, port string, sessionSecret string, userManagerKey in
 	server.Use(userContext.Middleware())
 
 	router := mux.NewRouter()
-	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		utils.RenderTemplate(w, "index", nil)
-	})
-	router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		utils.RenderErrorTemplate(w, "This page doesn't exist.", http.StatusNotFound)
-	})
+	// router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	// 	utils.RenderErrorTemplate(w, "This page doesn't exist.", http.StatusNotFound)
+	// })
 
 	var spotifyAuth *models.SpotifyAuthenticator
 	if isDev {
@@ -58,8 +56,17 @@ func NewServer(host string, port string, sessionSecret string, userManagerKey in
 	playlistCtrl.Register(router)
 	convertCtrl.Register(router)
 
-	// serve images, JS files, etc.
-	router.PathPrefix("/assets/").Handler(http.FileServer(http.Dir(".")))
+	if isDev {
+		log.Printf("DEVELOPMENT: Dev server port %s", devPort)
+		router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, host+devPort, http.StatusFound)
+		})
+	} else {
+		log.Print("PRODUCTION BUILD")
+		// serve images, JS files, etc.
+		router.Path("/").Handler(http.FileServer(http.Dir("client/build")))
+		router.PathPrefix("/static/").Handler(http.FileServer(http.Dir("client/build")))
+	}
 
 	server.UseHandler(router)
 	return &server
