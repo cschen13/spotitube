@@ -27,10 +27,6 @@ func NewServer(host string, port string, sessionSecret string, userManagerKey in
 	server.Use(userContext.Middleware())
 
 	router := mux.NewRouter()
-	// router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	// 	utils.RenderErrorTemplate(w, "This page doesn't exist.", http.StatusNotFound)
-	// })
-
 	var spotifyAuth *models.SpotifyAuthenticator
 	if isDev {
 		spotifyAuth = models.NewSpotifyAuthenticator(host + port)

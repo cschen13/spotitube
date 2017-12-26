@@ -39,7 +39,6 @@ func (ctrl *AuthController) initiateAuthHandler(w http.ResponseWriter, r *http.R
 
 	state := utils.GenerateRandStr(128)
 	if user := ctrl.currentUser.Get(r); user == nil {
-		log.Printf("auth: No current user found from context")
 		err := ctrl.sessionManager.Set(r, w, utils.USER_STATE_KEY, state)
 		if err != nil {
 			utils.RenderErrorTemplate(w, "An error occurred while logging in. Please clear your cookies and try again.", http.StatusInternalServerError)

@@ -1,6 +1,8 @@
 package models
 
 import (
+	"encoding/json"
+	"log"
 	"net/http"
 )
 
@@ -36,6 +38,26 @@ type Playlist interface {
 	GetName() string
 	GetURL() string
 	GetCoverURL() string
+}
+
+func (p PlaylistsPage) MarshalJSON() ([]byte, error) {
+	m := make(map[string]interface{})
+	m["pageNumber"] = p.PageNumber
+	m["nextPageParam"] = p.NextPageParam
+	m["previousPageParam"] = p.PreviousPageParam
+
+	m["playlists"] = make([]map[string]string, len(p.Playlists))
+	mPlaylists := m["playlists"].([]map[string]string)
+	for i, playlist := range p.Playlists {
+		mPlaylists[i] = make(map[string]string)
+		mPlaylists[i]["id"] = playlist.GetID()
+		mPlaylists[i]["ownerId"] = playlist.GetOwnerID()
+		mPlaylists[i]["name"] = playlist.GetName()
+		mPlaylists[i]["url"] = playlist.GetURL()
+		mPlaylists[i]["coverUrl"] = playlist.GetCoverURL()
+	}
+
+	return json.Marshal(m)
 }
 
 type PlaylistTrack interface {
