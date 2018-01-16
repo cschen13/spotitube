@@ -29,6 +29,10 @@ func (ctrl *AuthController) Register(router *mux.Router) {
 }
 
 func (ctrl *AuthController) initiateAuthHandler(w http.ResponseWriter, r *http.Request) {
+	if returnURL := r.FormValue("returnURL"); returnURL != "" {
+		ctrl.sessionManager.Set(r, w, "RedirectAfterLogin", returnURL)
+	}
+
 	service := mux.Vars(r)[SERVICE_PARAM]
 	auth, present := ctrl.auths[service]
 	if !present {
@@ -62,6 +66,7 @@ func (ctrl *AuthController) completeAuthHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	clientType := auth.GetType()
 	if user := ctrl.currentUser.Get(r); user != nil {
 		if err := user.AddClient(r, auth); err != nil {
 			http.Redirect(w, r, "/", http.StatusFound)
@@ -69,7 +74,7 @@ func (ctrl *AuthController) completeAuthHandler(w http.ResponseWriter, r *http.R
 			log.Print(err)
 			return
 		}
-		log.Printf("New %s client added to user %s", auth.GetType(), user.GetState())
+		log.Printf("New %s client added to user %s", clientType, user.GetState())
 	} else if storedState := ctrl.sessionManager.Get(r, utils.USER_STATE_KEY); storedState != "" {
 		user, err := models.NewUser(storedState, r, auth)
 		if err != nil {
@@ -79,14 +84,20 @@ func (ctrl *AuthController) completeAuthHandler(w http.ResponseWriter, r *http.R
 			return
 		}
 		user.Add()
-		log.Printf("New %s client added to NEW user %s", auth.GetType(), storedState)
+		log.Printf("New %s client added to NEW user %s", clientType, storedState)
 	} else {
 		log.Print("No cookie for user found")
 		http.Redirect(w, r, "/login/"+service, http.StatusFound)
 		return
 	}
 
-	http.Redirect(w, r, "/", http.StatusFound)
+	redirectTo := "/"
+	if returnURL := ctrl.sessionManager.Get(r, "RedirectAfterLogin"); returnURL != "" {
+		ctrl.sessionManager.Delete(r, w, "RedirectAfterLogin")
+		redirectTo = returnURL
+	}
+
+	http.Redirect(w, r, redirectTo, http.StatusFound)
 }
 
 func (ctrl *AuthController) logoutHandler(w http.ResponseWriter, r *http.Request) {

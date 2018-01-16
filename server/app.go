@@ -54,9 +54,16 @@ func NewServer(host string, port string, sessionSecret string, userManagerKey in
 
 	if isDev {
 		log.Printf("DEVELOPMENT: Dev server port %s", devPort)
-		router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-			http.Redirect(w, r, host+devPort, http.StatusFound)
+		router.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if acceptsJson := r.Header.Get("Accept") == "application/json"; acceptsJson {
+				http.Error(w, "The requested resource does not exist.", http.StatusNotFound)
+			} else {
+				http.Redirect(w, r, host+devPort+r.URL.Path, http.StatusFound)
+			}
 		})
+		// router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// 	http.Redirect(w, r, host+devPort, http.StatusFound)
+		// })
 	} else {
 		log.Print("PRODUCTION BUILD")
 		// serve images, JS files, etc.

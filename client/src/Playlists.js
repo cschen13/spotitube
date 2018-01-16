@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
-import { Header, List, Image, Button } from 'semantic-ui-react';
+import { Header, List, Image, Button, Modal } from 'semantic-ui-react';
 import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
-import noArtwork from './no-artwork.png';
+import noArtwork from './imgs/no-artwork.png';
 
 class PlaylistsManager extends Component {
   render() {
@@ -47,6 +47,7 @@ class PlaylistDetail extends Component {
         coverUrl: '',
       },
       tracks: [],
+      loggedInYouTube: false,
     };
   }
 
@@ -54,7 +55,12 @@ class PlaylistDetail extends Component {
     const ownerId = this.props.match.params.ownerId;
     const playlistId = this.props.match.params.playlistId;
 
-    fetch('/playlists/' + ownerId + '/' + playlistId)
+    let headers = new Headers();
+    headers.append('Accept', 'application/json')
+    fetch(`/playlists/${ownerId}/${playlistId}`, {
+      credentials: 'include',
+      headers: headers
+    })
     .then((res) => {
       console.log(res);
       if (res.ok) {
@@ -66,12 +72,18 @@ class PlaylistDetail extends Component {
                 coverUrl: json.playlist.coverUrl,
             },
             tracks: json.tracks,
+            showConvertModal: false,
           });
         });
       } else {
         // TODO: Handle errors
       }
     });
+  }
+
+  handleConvertClick() {
+    this.setState({showConvertModal: true});
+    console.log("Convert button clicked");
   }
 
   render() {
@@ -83,9 +95,23 @@ class PlaylistDetail extends Component {
         <Header as="h2">{playlistName}</Header>
         <Image src={coverUrl === '' ? noArtwork : coverUrl} size="medium" />
         <p>TODO: Track Listing Goes Here</p>
-        <Button primary>Convert to YouTube</Button>
+        <ConvertModal onClick={() => this.handleConvertClick()} />
       </div>
     );
+  }
+}
+
+class ConvertModal extends Component {
+  render() {
+    return (
+      <Modal
+        trigger={<Button primary onClick={this.props.onClick}>Convert to YouTube</Button>}>
+        <Modal.Header>Convert Playlist to YouTube</Modal.Header>
+        <Modal.Content>
+          <p>To begin conversion, you must first <a href={(process.env.SPOTITUBE_HOST ? '' : 'http://localhost:8080') + '/login/youtube?returnURL=' + encodeURIComponent(window.location.pathname + window.location.search)}>login with Google/YouTube</a>.</p>
+        </Modal.Content>
+      </Modal>
+    )
   }
 }
 

@@ -54,7 +54,7 @@ function Greeting(props) {
         Convert your Spotify playlists to YouTube music video playlists.
       </p>
       <p>
-        <a href={(process.env.SPOTITUBE_HOST ? '' : 'http://localhost:8080') + '/login/spotify'}>
+        <a href={(process.env.SPOTITUBE_HOST ? '' : 'http://localhost:8080') + '/login/spotify?returnURL=' + encodeURIComponent(window.location.pathname + window.location.search)}>
           Login with Spotify
         </a> to get started.
       </p>
