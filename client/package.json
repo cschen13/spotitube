@@ -10,7 +10,7 @@
     "semantic-ui-react": "^0.77.1"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "PORT=$SPOTITUBE_REACT_PORT react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"

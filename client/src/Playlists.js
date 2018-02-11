@@ -65,6 +65,7 @@ class PlaylistDetail extends Component {
       console.log(res);
       if (res.ok) {
         res.json().then((json) => {
+          console.log(json);
           this.setState({
               playlist: {
                 name: json.playlist.name,

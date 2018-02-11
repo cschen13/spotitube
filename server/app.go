@@ -34,12 +34,12 @@ func NewServer(host string, port string, sessionSecret string, userManagerKey in
 		spotifyAuth = models.NewSpotifyAuthenticator(host)
 	}
 
-	json := os.Getenv("YOUTUBE_SECRET")
-	if json == "" {
+	configJson := os.Getenv("YOUTUBE_SECRET")
+	if configJson == "" {
 		log.Fatalf("Client secret for youtube not found")
 	}
 
-	youtubeAuth := models.NewYoutubeAuthenticator(json, host+port, isDev)
+	youtubeAuth := models.NewYoutubeAuthenticator(configJson, host+port, isDev)
 
 	auths := make(map[string]models.Authenticator)
 	auths[spotifyAuth.GetType()] = spotifyAuth

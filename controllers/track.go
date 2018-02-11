@@ -14,20 +14,20 @@ const (
 	OWNER_ID_PARAM    = "ownerId"
 )
 
-type ConvertController struct {
+type TrackController struct {
 	sessionManager *utils.SessionManager
 	currentUser    *utils.CurrentUserManager
 }
 
-func NewConvertController(sessionManager *utils.SessionManager, currentUser *utils.CurrentUserManager) *ConvertController {
-	return &ConvertController{sessionManager: sessionManager, currentUser: currentUser}
+func NewTrackController(sessionManager *utils.SessionManager, currentUser *utils.CurrentUserManager) *TrackController {
+	return &TrackController{sessionManager: sessionManager, currentUser: currentUser}
 }
 
-func (ctrl *ConvertController) Register(router *mux.Router) {
-	router.HandleFunc("/convert-"+models.SPOTIFY_SERVICE+"/{"+OWNER_ID_PARAM+"}/{"+PLAYLIST_ID_PARAM+"}", ctrl.convertSpotifyHandler)
+func (ctrl *TrackController) Register(router *mux.Router) {
+	//router.HandleFunc("/convert-"+models.SPOTIFY_SERVICE+"/{"+OWNER_ID_PARAM+"}/{"+PLAYLIST_ID_PARAM+"}", ctrl.convertSpotifyHandler)
 }
 
-func (ctrl *ConvertController) convertSpotifyHandler(w http.ResponseWriter, r *http.Request) {
+func (ctrl *TrackController) convertSpotifyHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	ownerId, present := vars[OWNER_ID_PARAM]
 	if !present {
@@ -83,7 +83,7 @@ func (ctrl *ConvertController) convertSpotifyHandler(w http.ResponseWriter, r *h
 }
 
 // TODO: Make getting tracks its own endpoint; call from front end
-func (ctrl *ConvertController) getAllTracks(spotify models.Client, playlist models.Playlist) ([]models.PlaylistTrack, error) {
+func (ctrl *TrackController) getAllTracks(spotify models.Client, playlist models.Playlist) ([]models.PlaylistTrack, error) {
 	pageNum := 1
 	tracks, lastPage, err := spotify.GetPlaylistTracks(playlist, strconv.Itoa(pageNum))
 	if err != nil {
