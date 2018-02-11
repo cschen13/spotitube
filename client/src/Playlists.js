@@ -26,9 +26,9 @@ function Playlists(props) {
       <Header as="h2">Select a playlist</Header>
       <List celled>
         {props.playlists.map(playlist => 
-          <List.Item key={playlist.id}>
+          <List.Item key={playlist.ID}>
             <List.Content>
-              <Link to={{pathname: playlist.ownerId + '/' + playlist.id}}>{playlist.name}</Link>
+              <Link to={{pathname: playlist.OwnerID + '/' + playlist.ID}}>{playlist.Name}</Link>
             </List.Content>
           </List.Item>
           )}
@@ -64,15 +64,15 @@ class PlaylistDetail extends Component {
     .then((res) => {
       console.log(res);
       if (res.ok) {
-        res.json().then((json) => {
-          console.log(json);
+        res.json().then((playlist) => {
+          console.log(playlist);
           this.setState({
-              playlist: {
-                name: json.playlist.name,
-                url: json.playlist.url,
-                coverUrl: json.playlist.coverUrl,
+            playlist: {
+              name: playlist.Name,
+              url: playlist.URL,
+              coverUrl: playlist.CoverURL,
             },
-            tracks: json.tracks,
+            tracks: playlist.tracks, //TODO: Make a second request to get tracks.
             showConvertModal: false,
           });
         });

@@ -14,6 +14,6 @@ type Client interface {
 	GetPlaylists() (Playlists, error)
 	GetPlaylistInfo(string, string) (*Playlist, error)
 	CreatePlaylist(string) (*Playlist, error)
-	GetTracks(*Playlist, string) (Tracks, error)
+	GetTracks(*Playlist) (Tracks, error)
 	InsertTrack(*Playlist, Track) (bool, error)
 }

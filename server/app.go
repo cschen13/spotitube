@@ -47,10 +47,10 @@ func NewServer(host string, port string, sessionSecret string, userManagerKey in
 
 	authCtrl := controllers.NewAuthController(sessionManager, auths, currentUser)
 	playlistCtrl := controllers.NewPlaylistController(sessionManager, currentUser)
-	convertCtrl := controllers.NewConvertController(sessionManager, currentUser)
+	trackCtrl := controllers.NewTrackController(sessionManager, currentUser)
 	authCtrl.Register(router)
 	playlistCtrl.Register(router)
-	convertCtrl.Register(router)
+	trackCtrl.Register(router)
 
 	if isDev {
 		log.Printf("DEVELOPMENT: Dev server port %s", devPort)

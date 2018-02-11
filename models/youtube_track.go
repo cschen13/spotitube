@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func (client *youtubeClient) GetTracks(playlist *Playlist, page string) (Tracks, error) {
+func (client *youtubeClient) GetTracks(playlist *Playlist) (Tracks, error) {
 	return nil, errors.New("Unimplemented")
 }
 

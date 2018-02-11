@@ -22,7 +22,7 @@ func (track *spotifyTrack) GetArtist() string {
 	return ""
 }
 
-func (client *spotifyClient) GetTracks(playlist *Playlist, page string) (Tracks, error) {
+func (client *spotifyClient) GetTracks(playlist *Playlist) (Tracks, error) {
 	ownerId := playlist.OwnerID
 	playlistId := spotify.ID(playlist.ID)
 	trackPage, err := client.GetPlaylistTracksOpt(ownerId, playlistId, nil, "total")

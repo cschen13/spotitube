@@ -20,9 +20,9 @@ class App extends Component {
       // console.log(response);
       this.setState({ loggedIn: response.ok });
       if (response.ok) {
-        response.json().then((json) => {
-          // console.log(json);
-          this.setState({ playlists: json.playlists });
+        response.json().then((playlists) => {
+          console.log(playlists);
+          this.setState({ playlists: playlists });
         });
       }
     });
