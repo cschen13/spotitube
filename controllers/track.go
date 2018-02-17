@@ -69,7 +69,6 @@ func (ctrl *TrackController) getTracksHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	log.Print(tracks)
 	js, err := json.Marshal(tracks)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

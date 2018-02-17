@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"github.com/zmb3/spotify"
+	"log"
 )
 
 const SPOTIFY_PLAYLIST_TRACKS_PAGE_LIMIT = 100
@@ -27,6 +28,7 @@ func (client *spotifyClient) GetTracks(playlist *Playlist) (Tracks, error) {
 	playlistId := spotify.ID(playlist.ID)
 	trackPage, err := client.GetPlaylistTracksOpt(ownerId, playlistId, nil, "total")
 	if err != nil {
+		log.Printf("Error getting playlist tracks")
 		return nil, err
 	}
 
@@ -34,10 +36,11 @@ func (client *spotifyClient) GetTracks(playlist *Playlist) (Tracks, error) {
 	limit := SPOTIFY_PLAYLIST_TRACKS_PAGE_LIMIT
 	offset := 0
 	for page := 0; offset < len(tracks); page++ {
-		offset = (page - 1) * limit
+		offset = page * limit
 		options := spotify.Options{Limit: &limit, Offset: &offset}
 		trackPage, err = client.GetPlaylistTracksOpt(ownerId, playlistId, &options, "")
 		if err != nil {
+			log.Printf("Error getting playlist tracks")
 			return nil, err
 		}
 

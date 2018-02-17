@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Header, List, Image, Button, Modal } from 'semantic-ui-react';
+import { Header, List, Image, Button, Modal, Table, Loader, Dimmer } from 'semantic-ui-react';
 import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
 import noArtwork from './imgs/no-artwork.png';
 
@@ -48,6 +48,7 @@ class PlaylistDetail extends Component {
       },
       tracks: [],
       loggedInYouTube: false,
+      hasError: false,
     };
   }
 
@@ -63,23 +64,40 @@ class PlaylistDetail extends Component {
     })
     .then((res) => {
       console.log(res);
-      if (res.ok) {
-        res.json().then((playlist) => {
-          console.log(playlist);
-          this.setState({
-            playlist: {
-              name: playlist.Name,
-              url: playlist.URL,
-              coverUrl: playlist.CoverURL,
-            },
-            tracks: playlist.tracks, //TODO: Make a second request to get tracks.
-            showConvertModal: false,
-          });
-        });
-      } else {
-        // TODO: Handle errors
-      }
-    });
+      return res.json();
+    })
+    .then((playlist) => {
+      console.log(playlist);
+      this.setState({
+        playlist: {
+          name: playlist.Name,
+          url: playlist.URL,
+          coverUrl: playlist.CoverURL,
+        },
+        showConvertModal: false,
+      });
+
+      return fetch(`/playlists/${ownerId}/${playlistId}/tracks`, {
+        credentials: 'include',
+        headers: headers
+      });
+    })
+    .then((res) => {
+      console.log(res);
+      return res.json();
+    })
+    .then((tracks) => {
+      console.log(tracks);
+      this.setState({
+        tracks: tracks,
+      });
+    })
+    .catch((err) => {
+      this.setState({
+        hasError: true,
+      });
+      console.log('Request failed', err);
+    })
   }
 
   handleConvertClick() {
@@ -90,13 +108,19 @@ class PlaylistDetail extends Component {
   render() {
     const playlistName = this.state.playlist.name;
     const coverUrl = this.state.playlist.coverUrl;
+    const tracks = this.state.tracks;
 
     return (
       <div>
         <Header as="h2">{playlistName}</Header>
-        <Image src={coverUrl === '' ? noArtwork : coverUrl} size="medium" />
-        <p>TODO: Track Listing Goes Here</p>
-        <ConvertModal onClick={() => this.handleConvertClick()} />
+        {this.state.hasError
+          ? <p>An error occurred retrieving some part of the playlist.</p>
+          : <div>
+              <Image src={coverUrl === '' ? noArtwork : coverUrl} size="medium" />
+              <ConvertModal onClick={() => this.handleConvertClick()} />
+              <TrackList tracks={tracks} />
+            </div>
+        }
       </div>
     );
   }
@@ -114,6 +138,38 @@ class ConvertModal extends Component {
       </Modal>
     )
   }
+}
+
+function TrackList(props) {
+  if (props.tracks.length === 0) {
+    return (
+      <Dimmer active inverted>
+        <Loader inverted content='Loading Playlist (Long tracklists may take a while...)' />
+      </Dimmer>
+    );
+  }
+
+  return (
+    <Table definition>
+      <Table.Header>
+        <Table.Row>
+          <Table.HeaderCell />
+          <Table.HeaderCell>Title</Table.HeaderCell>
+          <Table.HeaderCell>Artist</Table.HeaderCell>
+        </Table.Row>
+      </Table.Header>
+
+      <Table.Body>
+        {props.tracks.map((track, index) => 
+          <Table.Row>
+            <Table.Cell collapsing>{index+1}</Table.Cell>
+            <Table.Cell collapsing>{track.Title}</Table.Cell>
+            <Table.Cell>{track.Artist}</Table.Cell>
+          </Table.Row>
+        )}
+      </Table.Body>
+    </Table>
+  );
 }
 
 export default PlaylistsManager;
