@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import './App.css';
 import { Header } from 'semantic-ui-react';
-import PlaylistsManager from './Playlists.js';
+import PlaylistsManager from './PlaylistsManager/PlaylistsManager';
 
 class App extends Component {
   constructor(props) {
