@@ -12,6 +12,10 @@ type spotifyTrack struct {
 	obj *spotify.SimpleTrack
 }
 
+func (track *spotifyTrack) GetID() string {
+	return track.obj.ID.String()
+}
+
 func (track *spotifyTrack) GetTitle() string {
 	return track.obj.Name
 }
@@ -21,6 +25,15 @@ func (track *spotifyTrack) GetArtist() string {
 		return track.obj.Artists[0].Name
 	}
 	return ""
+}
+
+func (client *spotifyClient) GetTrackByID(id string) (*Track, error) {
+	fullTrack, err := client.GetTrack(spotify.ID(id))
+	if err != nil {
+		return nil, err
+	}
+
+	return NewTrack(&spotifyTrack{&fullTrack.SimpleTrack}), nil
 }
 
 func (client *spotifyClient) GetTracks(playlist *Playlist) (Tracks, error) {

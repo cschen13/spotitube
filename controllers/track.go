@@ -12,6 +12,7 @@ import (
 const (
 	PLAYLIST_ID_PARAM = "playlistId"
 	OWNER_ID_PARAM    = "ownerId"
+	TRACK_ID_PARAM    = "trackId"
 )
 
 type TrackController struct {
@@ -24,7 +25,10 @@ func NewTrackController(sessionManager *utils.SessionManager, currentUser *utils
 }
 
 func (ctrl *TrackController) Register(router *mux.Router) {
-	router.HandleFunc("/playlists/{"+OWNER_ID_PARAM+"}/{"+PLAYLIST_ID_PARAM+"}/tracks", ctrl.getTracksHandler)
+	router.HandleFunc("/playlists/{"+OWNER_ID_PARAM+"}/{"+PLAYLIST_ID_PARAM+"}/tracks",
+		ctrl.getTracksHandler)
+	router.HandleFunc("/playlists/{"+OWNER_ID_PARAM+"}/{"+PLAYLIST_ID_PARAM+"}/tracks/{"+TRACK_ID_PARAM+"}",
+		ctrl.convertHandler).Methods("POST")
 }
 
 func (ctrl *TrackController) getTracksHandler(w http.ResponseWriter, r *http.Request) {
@@ -80,80 +84,74 @@ func (ctrl *TrackController) getTracksHandler(w http.ResponseWriter, r *http.Req
 	w.Write(js)
 }
 
-// func (ctrl *TrackController) convertSpotifyHandler(w http.ResponseWriter, r *http.Request) {
-// 	vars := mux.Vars(r)
-// 	ownerId, present := vars[OWNER_ID_PARAM]
-// 	if !present {
-// 		utils.RenderErrorTemplate(w, "URL is missing an owner ID", http.StatusUnprocessableEntity)
-// 		return
-// 	}
+func (ctrl *TrackController) convertHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	ownerId, present := vars[OWNER_ID_PARAM]
+	if !present {
+		// TODO: Actually handle these errors lmao
+		utils.RenderErrorTemplate(w, "URL is missing an owner ID", http.StatusUnprocessableEntity)
+		return
+	}
 
-// 	playlistId, present := vars[PLAYLIST_ID_PARAM]
-// 	if !present {
-// 		utils.RenderErrorTemplate(w, "URL is missing a playlist ID", http.StatusUnprocessableEntity)
-// 		return
-// 	}
+	playlistId, present := vars[PLAYLIST_ID_PARAM]
+	if !present {
+		// TODO: Actually handle these errors lmao
+		utils.RenderErrorTemplate(w, "URL is missing a playlist ID", http.StatusUnprocessableEntity)
+		return
+	}
 
-// 	user := ctrl.currentUser.Get(r)
-// 	if user == nil {
-// 		log.Printf("convert: No current user found from context")
-// 		http.Redirect(w, r, "/login/"+models.SPOTIFY_SERVICE, http.StatusFound)
-// 		return
-// 	}
+	trackId, present := vars[TRACK_ID_PARAM]
+	if !present {
+		// TODO: Actually handle these errors lmao
+		utils.RenderErrorTemplate(w, "URL is missing a track ID", http.StatusUnprocessableEntity)
+		return
+	}
 
-// 	spotify := user.GetClient(models.SPOTIFY_SERVICE)
-// 	if spotify == nil {
-// 		log.Printf("convert: No spotify client found for user %s", user.GetState())
-// 		http.Redirect(w, r, "/login/"+models.SPOTIFY_SERVICE, http.StatusFound)
-// 		return
-// 	}
+	user := ctrl.currentUser.Get(r)
+	if user == nil {
+		log.Printf("convert: No current user found from context")
+		http.Redirect(w, r, "/login/"+models.SPOTIFY_SERVICE, http.StatusFound)
+		return
+	}
 
-// 	youtube := user.GetClient(models.YOUTUBE_SERVICE)
-// 	if youtube == nil {
-// 		log.Printf("convert: No youtube client found for user %s", user.GetState())
-// 		//TODO: RETURN PAGE PARAMETER
-// 		http.Redirect(w, r, "/login/"+models.YOUTUBE_SERVICE, http.StatusFound)
-// 		return
-// 	}
+	spotify := user.GetClient(models.SPOTIFY_SERVICE)
+	if spotify == nil {
+		log.Printf("convert: No spotify client found for user %s", user.GetState())
+		http.Redirect(w, r, "/login/"+models.SPOTIFY_SERVICE, http.StatusFound)
+		return
+	}
 
-// 	playlist, err := spotify.GetPlaylistInfo(ownerId, playlistId)
-// 	if err != nil {
-// 		log.Printf("convert: error getting playlist info")
-// 		log.Print(err)
-// 		utils.RenderErrorTemplate(w, "Error occurred while retrieving playlist.", http.StatusInternalServerError)
-// 		return
-// 	}
+	youtube := user.GetClient(models.YOUTUBE_SERVICE)
+	if youtube == nil {
+		log.Printf("convert: No youtube client found for user %s", user.GetState())
+		http.Error(w, "User not logged into YouTube", http.StatusUnauthorized)
+		return
+	}
 
-// 	tracks, err := ctrl.getAllTracks(spotify, playlist)
-// 	if err != nil {
-// 		log.Printf("convert: Error occurred while retrieving playlist tracks")
-// 		log.Print(err)
-// 		utils.RenderErrorTemplate(w, "Error occurred while retrieving playlist tracks.", http.StatusInternalServerError)
-// 		return
-// 	}
-// 	page := &models.ConvertPage{playlist, tracks}
-// 	utils.RenderTemplate(w, "convert", page)
-// }
+	spotifyPlaylist, err := spotify.GetPlaylistInfo(ownerId, playlistId)
+	if err != nil {
+		http.Error(w, "error during conversion, could not retrieve playlist info", http.StatusInternalServerError)
+		return
+	}
 
-// // TODO: Make getting tracks its own endpoint; call from front end
-// func (ctrl *TrackController) getAllTracks(spotify models.Client, playlist models.Playlist) ([]models.PlaylistTrack, error) {
-// 	pageNum := 1
-// 	tracks, lastPage, err := spotify.GetPlaylistTracks(playlist, strconv.Itoa(pageNum))
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	track, err := spotify.GetTrackByID(trackId)
+	if err != nil {
+		log.Printf("convert: error getting track to convert")
+		log.Print(err)
+		http.Error(w, "error during conversion, could not retrieve track", http.StatusInternalServerError)
+		return
+	}
 
-// 	var nextPageTracks []models.PlaylistTrack
-// 	for !lastPage {
-// 		pageNum += 1
-// 		nextPageTracks, lastPage, err = spotify.GetPlaylistTracks(playlist, strconv.Itoa(pageNum))
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		tracks = append(tracks, nextPageTracks...)
-// 	}
+	// TODO: IMPLEMENT
+	// youtubePlaylist, err := youtube.GetPlaylistInfo()
+	// IF YOU CAN'T FIND THE PLAYLIST, CREATE A NEW ONE
+	// youtubePlaylist, err := youtube.CreatePlaylist(spotifyPlaylist.Name)
+	// if err != nil {
+	// 	log.Print(err)
+	// 	http.Error(w, "convert: unable to create YouTube playlist", http.StatusInternalServerError)
+	// 	return
+	// }
 
-// 	log.Printf("Found %d tracks in playlist %s", len(tracks), playlist.GetName())
-
-// 	return tracks, nil
-// }
+	// w.Header().Set("Content-Type", "application/json")
+	// w.Write(js)
+}

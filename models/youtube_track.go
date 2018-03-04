@@ -8,6 +8,10 @@ import (
 	"strings"
 )
 
+func (client *youtubeClient) GetTrackByID(videoId string) (*Track, error) {
+	return nil, errors.New("Unimplemented")
+}
+
 func (client *youtubeClient) GetTracks(playlist *Playlist) (Tracks, error) {
 	return nil, errors.New("Unimplemented")
 }

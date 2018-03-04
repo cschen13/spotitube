@@ -31,10 +31,7 @@ class PlaylistDetail extends Component {
       credentials: 'include',
       headers: headers
     })
-    .then((res) => {
-      console.log(res);
-      return res.json();
-    })
+    .then((res) => res.json())
     .then((playlist) => {
       console.log(playlist);
       this.setState({
@@ -51,16 +48,8 @@ class PlaylistDetail extends Component {
         headers: headers
       });
     })
-    .then((res) => {
-      console.log(res);
-      return res.json();
-    })
-    .then((tracks) => {
-      console.log(tracks);
-      this.setState({
-        tracks: tracks,
-      });
-    })
+    .then((res) => res.json())
+    .then((tracks) => { this.setState({ tracks: tracks }); })
     .catch((err) => {
       this.setState({
         hasError: true,
@@ -96,24 +85,24 @@ class PlaylistDetail extends Component {
           console.log(`Converting ${track.Title}`);
           return fetch(`/playlists/${ownerId}/${playlistId}/tracks/${track.ID}`, {
             credentials: 'include',
-            headers: {
-              'Accept': 'application/json',
-            },
+            headers: { 'Accept': 'application/json' },
             method: 'POST',
           })
-          .then((res) => {
-            if (!res.ok) {
-              if (res.status === 401) {
-                this.setState({ loggedInYouTube: false });
-                throw new Error(res.statusText);
-              } else {
-                console.log(`Failed to convert ${track.Title}`);
-                this.setState({ convertFailures: [...this.state.convertFailures, track] });
-              }
-            }
-          });
+          .then((res) => this.handleConvertErrors(res, track));
         });
     }, Promise.resolve());
+  }
+
+  handleConvertErrors(response, track) {
+    if (!response.ok) {
+      if (response.status === 401) {
+        this.setState({ loggedInYouTube: false });
+        throw new Error(response.statusText);
+      } else {
+        console.error(`Failed to convert ${track.Title}`);
+        this.setState({ convertFailures: [...this.state.convertFailures, track] });
+      }
+    }
   }
 
   render() {
