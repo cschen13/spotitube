@@ -33,7 +33,6 @@ func (client *youtubeClient) InsertTrack(playlist *Playlist, track *Track) (bool
 		"snippet.resourceId.videoId": videoId,
 	}
 	res := createResource(properties)
-	log.Print(res)
 	if err := json.NewDecoder(strings.NewReader(res)).Decode(&playlistItem); err != nil {
 		log.Printf("youtube: Failed to decode JSON into playlist item resource")
 		return false, err

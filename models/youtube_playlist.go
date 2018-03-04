@@ -51,6 +51,7 @@ func (client *youtubeClient) GetOwnPlaylistInfo(playlistId string) (*Playlist, e
 }
 
 func (client *youtubeClient) GetPlaylistInfo(channelId, playlistId string) (*Playlist, error) {
+	log.Printf("Finding YouTube playlist %s for channel %s", playlistId, channelId)
 	call := client.Playlists.List("id,snippet").Id(playlistId)
 	response, err := call.Do()
 	if err != nil {
@@ -58,6 +59,7 @@ func (client *youtubeClient) GetPlaylistInfo(channelId, playlistId string) (*Pla
 	}
 
 	if len(response.Items) == 0 {
+		log.Print("Could not find playlist")
 		return nil, nil
 	}
 

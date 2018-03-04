@@ -109,11 +109,14 @@ class PlaylistDetail extends Component {
         this.setState({ convertFailures: [...this.state.convertFailures, track] });
       }
     }
+
+    return response;
   }
 
   render() {
     const convertFailures = this.state.convertFailures;
     const loggedInYouTube = this.state.loggedInYouTube;
+    const percentProgress = this.state.percentProgress;
     const playlistName = this.state.playlist.name;
     const coverUrl = this.state.playlist.coverUrl;
     const tracks = this.state.tracks;
@@ -126,7 +129,8 @@ class PlaylistDetail extends Component {
           : <div>
               <Image src={coverUrl === '' ? noArtwork : coverUrl} size="medium" />
               <ConvertModal
-                loggedInYouTube={loggedInYouTube} 
+                loggedInYouTube={loggedInYouTube}
+                // percentProgress={}
                 convertFailures={convertFailures}
                 onClick={() => this.handleConvertClick()} />
               <Tracklist tracks={tracks} />
