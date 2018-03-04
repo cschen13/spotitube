@@ -81,9 +81,15 @@ class PlaylistDetail extends Component {
 
     return tracks.reduce((promise, track) => {
       return promise
-        .then((res) => {
+        .then((res) => { if (res) return res.json(); })
+        .then((newPlaylist) => {
           console.log(`Converting ${track.Title}`);
-          return fetch(`/playlists/${ownerId}/${playlistId}/tracks/${track.ID}`, {
+          let newPlaylistQuery = '';
+          if (newPlaylist) {
+            newPlaylistQuery = `?newPlaylistId=${newPlaylist.ID}`;
+          }
+
+          return fetch(`/playlists/${ownerId}/${playlistId}/tracks/${track.ID}${newPlaylistQuery}`, {
             credentials: 'include',
             headers: { 'Accept': 'application/json' },
             method: 'POST',

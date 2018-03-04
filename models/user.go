@@ -10,6 +10,7 @@ type User struct {
 	clients map[string]Client
 }
 
+// TODO: Abstract all clients into the User struct.
 func NewUser(state string, r *http.Request, auth Authenticator) (*User, error) {
 	user := &User{
 		state:   state,

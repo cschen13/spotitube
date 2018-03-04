@@ -10,9 +10,10 @@ import (
 )
 
 const (
-	PLAYLIST_ID_PARAM = "playlistId"
-	OWNER_ID_PARAM    = "ownerId"
-	TRACK_ID_PARAM    = "trackId"
+	PLAYLIST_ID_PARAM           = "playlistId"
+	OWNER_ID_PARAM              = "ownerId"
+	TRACK_ID_PARAM              = "trackId"
+	NEW_PLAYLIST_ID_QUERY_PARAM = "newPlaylistId"
 )
 
 type TrackController struct {
@@ -142,16 +143,39 @@ func (ctrl *TrackController) convertHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	// TODO: IMPLEMENT
-	// youtubePlaylist, err := youtube.GetPlaylistInfo()
-	// IF YOU CAN'T FIND THE PLAYLIST, CREATE A NEW ONE
-	// youtubePlaylist, err := youtube.CreatePlaylist(spotifyPlaylist.Name)
-	// if err != nil {
-	// 	log.Print(err)
-	// 	http.Error(w, "convert: unable to create YouTube playlist", http.StatusInternalServerError)
-	// 	return
-	// }
+	newPlaylistId := r.FormValue(NEW_PLAYLIST_ID_QUERY_PARAM)
+	newPlaylist, err := youtube.GetOwnPlaylistInfo(newPlaylistId)
+	if err != nil {
+		log.Print(err)
+		return
+	}
 
-	// w.Header().Set("Content-Type", "application/json")
-	// w.Write(js)
+	if newPlaylist == nil {
+		newPlaylist, err = youtube.CreatePlaylist(spotifyPlaylist.Name)
+		if err != nil {
+			log.Print(err)
+			http.Error(w, "convert: unable to create YouTube playlist", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	found, err := youtube.InsertTrack(newPlaylist, track)
+	if err != nil {
+		log.Print(err)
+		http.Error(w, "convert: unable to insert track into YouTube playlist", http.StatusInternalServerError)
+		return
+	} else if !found {
+		http.Error(w, "convert: unable to find video matching search results", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	js, err := json.Marshal(newPlaylist)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Print(err)
+		return
+	}
+
+	w.Write(js)
 }

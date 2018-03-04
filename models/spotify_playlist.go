@@ -72,6 +72,15 @@ func (client *spotifyClient) CreatePlaylist(name string) (*Playlist, error) {
 	return nil, errors.New("Unimplemented")
 }
 
+func (client *spotifyClient) GetOwnPlaylistInfo(playlistId string) (*Playlist, error) {
+	user, err := client.CurrentUser()
+	if err != nil {
+		return nil, err
+	}
+
+	return client.GetPlaylistInfo(user.ID, playlistId)
+}
+
 func (client *spotifyClient) GetPlaylistInfo(ownerId, playlistId string) (*Playlist, error) {
 	log.Printf("Finding playlist %s belonging to user %s", spotify.ID(playlistId), ownerId)
 	fullPlaylist, err := client.GetPlaylist(ownerId, spotify.ID(playlistId))

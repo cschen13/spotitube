@@ -16,7 +16,7 @@ func (client *youtubeClient) GetTracks(playlist *Playlist) (Tracks, error) {
 	return nil, errors.New("Unimplemented")
 }
 
-func (client *youtubeClient) InsertTrack(playlist *Playlist, track Track) (bool, error) {
+func (client *youtubeClient) InsertTrack(playlist *Playlist, track *Track) (bool, error) {
 	playlistItem := &youtube.PlaylistItem{}
 	videoId, err := client.searchForMatchingVideo(track)
 	if err != nil {
@@ -33,18 +33,21 @@ func (client *youtubeClient) InsertTrack(playlist *Playlist, track Track) (bool,
 		"snippet.resourceId.videoId": videoId,
 	}
 	res := createResource(properties)
+	log.Print(res)
 	if err := json.NewDecoder(strings.NewReader(res)).Decode(&playlistItem); err != nil {
 		log.Printf("youtube: Failed to decode JSON into playlist item resource")
 		return false, err
 	}
 
-	call := client.PlaylistItems.Insert("id", playlistItem)
+	// Don't actually need snippet part, but API throws an unexpectedPart error
+	// for just "id"
+	call := client.PlaylistItems.Insert("id,snippet", playlistItem)
 	_, err = call.Do()
 	return true, err
 }
 
-func (client *youtubeClient) searchForMatchingVideo(track Track) (videoId string, err error) {
-	call := client.Search.List("snippet").Q(track.Artist + " " + track.Title + " video").Type("video")
+func (client *youtubeClient) searchForMatchingVideo(track *Track) (videoId string, err error) {
+	call := client.Search.List("snippet").Q(track.Artist + " " + track.Title + " music video").Type("video")
 	response, err := call.Do()
 	if err != nil {
 		return

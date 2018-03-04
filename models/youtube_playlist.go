@@ -39,8 +39,29 @@ func (client *youtubeClient) GetPlaylists() (playlists Playlists, err error) {
 	return nil, errors.New("youtube: GetPlaylists is unimplemented.")
 }
 
+func (client *youtubeClient) GetOwnPlaylistInfo(playlistId string) (*Playlist, error) {
+	call := client.Channels.List("id")
+	call.Mine(true)
+	response, err := call.Do()
+	if err != nil {
+		return nil, err
+	}
+
+	return client.GetPlaylistInfo(response.Items[0].Id, playlistId)
+}
+
 func (client *youtubeClient) GetPlaylistInfo(channelId, playlistId string) (*Playlist, error) {
-	return nil, errors.New("Unimplemented")
+	call := client.Playlists.List("id,snippet").Id(playlistId)
+	response, err := call.Do()
+	if err != nil {
+		return nil, err
+	}
+
+	if len(response.Items) == 0 {
+		return nil, nil
+	}
+
+	return NewPlaylist(&youtubePlaylist{response.Items[0]}), nil
 }
 
 func (client *youtubeClient) CreatePlaylist(name string) (*Playlist, error) {
