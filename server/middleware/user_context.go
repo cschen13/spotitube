@@ -21,7 +21,7 @@ func (uc *UserContext) Middleware() negroni.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		state := uc.sessionManager.Get(r, utils.USER_STATE_KEY)
 		if user := models.GetUser(state); state != "" && user != nil {
-			log.Printf("Current user with state %s", state)
+			// log.Printf("Current user with state %s", state)
 			uc.currentUser.Set(r, user)
 		} else {
 			log.Printf("No current user found")
