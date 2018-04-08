@@ -54,9 +54,8 @@ func (ctrl *AuthController) initiateAuth(w http.ResponseWriter, r *http.Request)
 				err,
 				"An error occurred while logging in. Please clear your cookies and try again.",
 			}
-			// utils.RenderErrorTemplate(w, "An error occurred while logging in. Please clear your cookies and try again.", http.StatusInternalServerError)
-			// return
 		}
+
 	} else {
 		state = user.GetState()
 	}
@@ -76,38 +75,29 @@ func (ctrl *AuthController) completeAuth(w http.ResponseWriter, r *http.Request)
 			errors.New(fmt.Sprintf("initiateAuth: unrecognized service %s", service)),
 			"An error occurred while logging in. Please try again.",
 		}
-		// log.Printf("Unrecognized service %s", service)
-		// utils.RenderErrorTemplate(w, "An error occurred while logging in.", http.StatusInternalServerError)
-		// return
 	}
 
 	clientType := auth.GetType()
 	if user := ctrl.currentUser.Get(r); user != nil {
 		if err := user.AddClient(r, auth); err != nil {
-			// http.Redirect(w, r, "/", http.StatusFound)
-			// log.Print("Couldn't add new client to user:")
-			// log.Print(err)
-			// return
 			return utils.PageError{
 				http.StatusInternalServerError,
 				err,
 				"An error occurred while logging in. Please try again.",
 			}
 		}
+
 		log.Printf("New %s client added to user %s", clientType, user.GetState())
 	} else if storedState := ctrl.sessionManager.Get(r, utils.USER_STATE_KEY); storedState != "" {
 		user, err := models.NewUser(storedState, r, auth)
 		if err != nil {
-			// http.Redirect(w, r, "/", http.StatusFound)
-			// log.Print("Couldn't create user:")
-			// log.Print(err)
-			// return
 			return utils.PageError{
 				http.StatusInternalServerError,
 				err,
 				"An error occurred while logging in. Please try again.",
 			}
 		}
+
 		user.Add()
 		log.Printf("New %s client added to NEW user %s", clientType, storedState)
 	} else {
@@ -135,9 +125,6 @@ func (ctrl *AuthController) logout(w http.ResponseWriter, r *http.Request) error
 			err,
 			"An error occurred while logging out.",
 		}
-		// log.Printf("Error logging out:")
-		// log.Print(err)
-		// utils.RenderErrorTemplate(w, "An error occurred while logging out.", http.StatusInternalServerError)
 	}
 
 	http.Redirect(w, r, "/", http.StatusFound)

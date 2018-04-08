@@ -10,8 +10,10 @@ class PlaylistDetail extends Component {
     this.state = {
       converted: false,
       convertFailures: [],
+      currentTrack: '',
       hasGetError: false,
       loggedInYouTube: true,
+      percentProgress: 0,
       playlist: {
         name: '',
         url: '#',
@@ -79,11 +81,13 @@ class PlaylistDetail extends Component {
     const playlistId = this.props.match.params.playlistId;
     const tracks = this.state.tracks;
 
+    let counter = 0;
     return tracks.reduce((promise, track) => {
       return promise
-        .then((res) => { if (res) return res.json(); })
+        .then((res) => { console.log(res); if (res) return res.json(); })
         .then((newPlaylist) => {
           console.log(`Converting ${track.Title}`);
+          this.setState({ currentTrack: track.Title });
           let newPlaylistQuery = '';
           if (newPlaylist) {
             newPlaylistQuery = `?newPlaylistId=${newPlaylist.ID}`;
@@ -94,7 +98,11 @@ class PlaylistDetail extends Component {
             headers: { 'Accept': 'application/json' },
             method: 'POST',
           })
-          .then((res) => this.handleConvertErrors(res, track));
+          .then((res) => {
+            this.handleConvertErrors(res, track);
+            this.setState({ percentProgress: ++counter / tracks.length * 100 });
+            return res;
+          });
         });
     }, Promise.resolve());
   }
@@ -115,6 +123,7 @@ class PlaylistDetail extends Component {
 
   render() {
     const convertFailures = this.state.convertFailures;
+    const currentTrack = this.state.currentTrack;
     const loggedInYouTube = this.state.loggedInYouTube;
     const percentProgress = this.state.percentProgress;
     const playlistName = this.state.playlist.name;
@@ -129,8 +138,9 @@ class PlaylistDetail extends Component {
           : <div>
               <Image src={coverUrl === '' ? noArtwork : coverUrl} size="medium" />
               <ConvertModal
+                currentTrack={currentTrack}
                 loggedInYouTube={loggedInYouTube}
-                // percentProgress={}
+                percentProgress={percentProgress}
                 convertFailures={convertFailures}
                 onClick={() => this.handleConvertClick()} />
               <Tracklist tracks={tracks} />

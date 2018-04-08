@@ -7,32 +7,7 @@ import (
 	"net/http"
 )
 
-// var FUNC_MAP = template.FuncMap{
-// 	"id": func(playlist models.Playlist) string {
-// 		return playlist.GetID()
-// 	},
-// 	"owner": func(playlist models.Playlist) string {
-// 		return playlist.GetOwnerID()
-// 	},
-// 	"name": func(playlist models.Playlist) string {
-// 		return playlist.GetName()
-// 	},
-// 	"url": func(playlist models.Playlist) string {
-// 		return playlist.GetURL()
-// 	},
-// 	"coverUrl": func(playlist models.Playlist) string {
-// 		return playlist.GetCoverURL()
-// 	},
-// 	"title": func(track models.Track) string {
-// 		return track.GetTitle()
-// 	},
-// 	"artist": func(track models.Track) string {
-// 		return track.GetArtist()
-// 	},
-// }
-
 func RenderTemplate(w http.ResponseWriter, tmpl string, p interface{}) {
-	// t, err := template.New(tmpl+".tmpl").Funcs(FUNC_MAP).ParseFiles("views/_head.tmpl", "views/"+tmpl+".tmpl")
 	t, err := template.New(tmpl+".tmpl").ParseFiles("views/_head.tmpl", "views/"+tmpl+".tmpl")
 	if err != nil {
 		log.Print(err)

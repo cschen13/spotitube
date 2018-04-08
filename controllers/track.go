@@ -39,55 +39,36 @@ func (ctrl *TrackController) getTracks(w http.ResponseWriter, r *http.Request) e
 	ownerId, present := vars[OWNER_ID_PARAM]
 	if !present {
 		return utils.StatusError{http.StatusUnprocessableEntity, errors.New("getTracks: URL is missing an owner ID")}
-		// utils.RenderErrorTemplate(w, "URL is missing an owner ID", http.StatusUnprocessableEntity)
-		// return
 	}
 
 	playlistId, present := vars[PLAYLIST_ID_PARAM]
 	if !present {
 		return utils.StatusError{http.StatusUnprocessableEntity, errors.New("getTracks: URL is missing a playlist ID")}
-		// utils.RenderErrorTemplate(w, "URL is missing a playlist ID", http.StatusUnprocessableEntity)
-		// return
 	}
 
 	user := ctrl.currentUser.Get(r)
 	if user == nil {
 		return utils.StatusError{http.StatusUnauthorized, errors.New("getTracks: user not logged in")}
-		// log.Printf("getTracks: No current user found from context")
-		// http.Redirect(w, r, "/login/"+models.SPOTIFY_SERVICE, http.StatusFound)
-		// return
 	}
 
 	client := user.GetClient(models.SPOTIFY_SERVICE)
 	if client == nil {
 		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("getTracks: no %s client found for user %s", models.SPOTIFY_SERVICE, user.GetState()))}
-		// log.Printf("getTracks: No spotify client found for user %s", user.GetState())
-		// http.Redirect(w, r, "/login/"+models.SPOTIFY_SERVICE, http.StatusFound)
-		// return
 	}
 
 	playlist, err := client.GetPlaylistInfo(ownerId, playlistId)
 	if err != nil {
 		return utils.StatusError{http.StatusInternalServerError, err}
-		// log.Print(err)
-		// http.Error(w, err.Error(), http.StatusInternalServerError)
-		// return
 	}
 
 	tracks, err := client.GetTracks(playlist)
 	if err != nil {
 		return utils.StatusError{http.StatusInternalServerError, err}
-		// log.Print(err)
-		// http.Error(w, err.Error(), http.StatusInternalServerError)
-		// return
 	}
 
 	js, err := json.Marshal(tracks)
 	if err != nil {
 		return utils.StatusError{http.StatusInternalServerError, err}
-		// http.Error(w, err.Error(), http.StatusInternalServerError)
-		// log.Print(err)
-		// return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -99,105 +80,68 @@ func (ctrl *TrackController) convert(w http.ResponseWriter, r *http.Request) err
 	vars := mux.Vars(r)
 	ownerId, present := vars[OWNER_ID_PARAM]
 	if !present {
-		// TODO: Actually handle these errors lmao
 		return utils.StatusError{http.StatusUnprocessableEntity, errors.New("convert: URL is missing an owner ID")}
-		// utils.RenderErrorTemplate(w, "URL is missing an owner ID", http.StatusUnprocessableEntity)
-		// return
 	}
 
 	playlistId, present := vars[PLAYLIST_ID_PARAM]
 	if !present {
-		// TODO: Actually handle these errors lmao
 		return utils.StatusError{http.StatusUnprocessableEntity, errors.New("convert: URL is missing a playlist ID")}
-		// utils.RenderErrorTemplate(w, "URL is missing a playlist ID", http.StatusUnprocessableEntity)
-		// return
 	}
 
 	trackId, present := vars[TRACK_ID_PARAM]
 	if !present {
-		// TODO: Actually handle these errors lmao
 		return utils.StatusError{http.StatusUnprocessableEntity, errors.New("convert: URL is missing a track ID")}
-		// utils.RenderErrorTemplate(w, "URL is missing a track ID", http.StatusUnprocessableEntity)
-		// return
 	}
 
 	user := ctrl.currentUser.Get(r)
 	if user == nil {
 		return utils.StatusError{http.StatusUnauthorized, errors.New("getTracks: user not logged in")}
-		// log.Printf("convert: No current user found from context")
-		// http.Redirect(w, r, "/login/"+models.SPOTIFY_SERVICE, http.StatusFound)
-		// return
 	}
 
 	spotify := user.GetClient(models.SPOTIFY_SERVICE)
 	if spotify == nil {
 		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("convert: no %s client found for user %s", models.SPOTIFY_SERVICE, user.GetState()))}
-		// log.Printf("convert: No spotify client found for user %s", user.GetState())
-		// http.Redirect(w, r, "/login/"+models.SPOTIFY_SERVICE, http.StatusFound)
-		// return
 	}
 
 	youtube := user.GetClient(models.YOUTUBE_SERVICE)
 	if youtube == nil {
 		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("convert: no %s client found for user %s", models.YOUTUBE_SERVICE, user.GetState()))}
-		// log.Printf("convert: No youtube client found for user %s", user.GetState())
-		// http.Error(w, "User not logged into YouTube", http.StatusUnauthorized)
-		// return
 	}
 
 	spotifyPlaylist, err := spotify.GetPlaylistInfo(ownerId, playlistId)
 	if err != nil {
 		return utils.StatusError{http.StatusInternalServerError, err}
-		// http.Error(w, "error during conversion, could not retrieve playlist info", http.StatusInternalServerError)
-		// return
 	}
 
 	track, err := spotify.GetTrackByID(trackId)
 	if err != nil {
 		return utils.StatusError{http.StatusInternalServerError, err}
-		// log.Printf("convert: error getting track to convert")
-		// log.Print(err)
-		// http.Error(w, "error during conversion, could not retrieve track", http.StatusInternalServerError)
-		// return
 	}
 
 	newPlaylistId := r.FormValue(NEW_PLAYLIST_ID_QUERY_PARAM)
 	newPlaylist, err := youtube.GetOwnPlaylistInfo(newPlaylistId)
 	if err != nil {
 		return utils.StatusError{http.StatusInternalServerError, err}
-		// log.Print(err)
-		// return
 	}
 
 	if newPlaylist == nil {
 		newPlaylist, err = youtube.CreatePlaylist(spotifyPlaylist.Name)
 		if err != nil {
 			return utils.StatusError{http.StatusInternalServerError, err}
-			// log.Print(err)
-			// http.Error(w, "convert: unable to create YouTube playlist", http.StatusInternalServerError)
-			// return
 		}
 	}
 
 	found, err := youtube.InsertTrack(newPlaylist, track)
 	if err != nil {
 		return utils.StatusError{http.StatusInternalServerError, err}
-		// log.Print(err)
-		// http.Error(w, "convert: unable to insert track into YouTube playlist", http.StatusInternalServerError)
-		// return
 	} else if !found {
 		return utils.StatusError{http.StatusInternalServerError, errors.New("convert: unable to find video matching search results")}
-		// http.Error(w, "convert: unable to find video matching search results", http.StatusInternalServerError)
-		// return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	js, err := json.Marshal(newPlaylist)
 	if err != nil {
 		return utils.StatusError{http.StatusInternalServerError, err}
-		// http.Error(w, err.Error(), http.StatusInternalServerError)
-		// log.Print(err)
-		// return
 	}
 
 	w.Write(js)
