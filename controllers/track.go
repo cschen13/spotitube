@@ -34,6 +34,11 @@ func (ctrl *TrackController) Register(router *mux.Router) {
 		utils.Handler(ctrl.convert)).Methods("POST")
 }
 
+type tracksClient interface {
+	GetPlaylistInfo(string, string) (*models.Playlist, error)
+	GetTracks(*models.Playlist) (models.Tracks, error)
+}
+
 func (ctrl *TrackController) getTracks(w http.ResponseWriter, r *http.Request) error {
 	vars := mux.Vars(r)
 	ownerId, present := vars[OWNER_ID_PARAM]
@@ -51,9 +56,14 @@ func (ctrl *TrackController) getTracks(w http.ResponseWriter, r *http.Request) e
 		return utils.StatusError{http.StatusUnauthorized, errors.New("getTracks: user not logged in")}
 	}
 
-	client := user.GetClient(models.SPOTIFY_SERVICE)
-	if client == nil {
+	c := user.GetClient(models.SPOTIFY_SERVICE)
+	if c == nil {
 		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("getTracks: no %s client found for user %s", models.SPOTIFY_SERVICE, user.GetState()))}
+	}
+
+	client, ok := c.(tracksClient)
+	if !ok {
+		return utils.StatusError{http.StatusMethodNotAllowed, errors.New(fmt.Sprintf("getTracks: %s client does not satisfy interface"))}
 	}
 
 	playlist, err := client.GetPlaylistInfo(ownerId, playlistId)
@@ -74,6 +84,17 @@ func (ctrl *TrackController) getTracks(w http.ResponseWriter, r *http.Request) e
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(js)
 	return nil
+}
+
+type convertSrcClient interface {
+	GetPlaylistInfo(string, string) (*models.Playlist, error)
+	GetTrackByID(string) (*models.Track, error)
+}
+
+type convertDstClient interface {
+	GetOwnPlaylistInfo(string) (*models.Playlist, error)
+	CreatePlaylist(string) (*models.Playlist, error)
+	InsertTrack(*models.Playlist, *models.Track) (bool, error)
 }
 
 func (ctrl *TrackController) convert(w http.ResponseWriter, r *http.Request) error {
@@ -98,14 +119,24 @@ func (ctrl *TrackController) convert(w http.ResponseWriter, r *http.Request) err
 		return utils.StatusError{http.StatusUnauthorized, errors.New("getTracks: user not logged in")}
 	}
 
-	spotify := user.GetClient(models.SPOTIFY_SERVICE)
-	if spotify == nil {
+	c := user.GetClient(models.SPOTIFY_SERVICE)
+	if c == nil {
 		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("convert: no %s client found for user %s", models.SPOTIFY_SERVICE, user.GetState()))}
 	}
 
-	youtube := user.GetClient(models.YOUTUBE_SERVICE)
-	if youtube == nil {
+	spotify, ok := c.(convertSrcClient)
+	if !ok {
+		return utils.StatusError{http.StatusMethodNotAllowed, errors.New(fmt.Sprintf("convert: %s client does not satisfy source interface"))}
+	}
+
+	c = user.GetClient(models.YOUTUBE_SERVICE)
+	if c == nil {
 		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("convert: no %s client found for user %s", models.YOUTUBE_SERVICE, user.GetState()))}
+	}
+
+	youtube, ok := c.(convertDstClient)
+	if !ok {
+		return utils.StatusError{http.StatusMethodNotAllowed, errors.New(fmt.Sprintf("convert: %s client does not satisfy destination interface"))}
 	}
 
 	spotifyPlaylist, err := spotify.GetPlaylistInfo(ownerId, playlistId)

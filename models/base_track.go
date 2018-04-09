@@ -1,17 +1,15 @@
 package models
 
-type Track struct {
-	ID     string
-	Title  string
-	Artist string
-}
-
-type Tracks []*Track
-
 type ClientTrack interface {
 	GetID() string
 	GetTitle() string
 	GetArtist() string
+}
+
+type Track struct {
+	ID     string
+	Title  string
+	Artist string
 }
 
 func NewTrack(track ClientTrack) *Track {
@@ -21,3 +19,5 @@ func NewTrack(track ClientTrack) *Track {
 		track.GetArtist(),
 	}
 }
+
+type Tracks []*Track

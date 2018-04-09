@@ -29,7 +29,7 @@ func (sa *SpotifyAuthenticator) BuildAuthURL(state string) string {
 	return sa.auth.AuthURL(state)
 }
 
-func (sa *SpotifyAuthenticator) newClient(state string, r *http.Request) (Client, error) {
+func (sa *SpotifyAuthenticator) newClient(state string, r *http.Request) (interface{}, error) {
 	// acquire access token (also checks state parameter)
 	tok, err := sa.auth.Token(state, r)
 	if err != nil {

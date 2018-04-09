@@ -30,6 +30,10 @@ func (ctrl *PlaylistController) Register(router *mux.Router) {
 	router.Handle("/playlists/{"+OWNER_ID_PARAM+"}/{"+PLAYLIST_ID_PARAM+"}", utils.Handler(ctrl.getPlaylistInfo))
 }
 
+type playlistsClient interface {
+	GetPlaylists() (models.Playlists, error)
+}
+
 func (ctrl *PlaylistController) getPlaylists(w http.ResponseWriter, r *http.Request) error {
 	user := ctrl.currentUser.Get(r)
 	if user == nil {
@@ -41,9 +45,14 @@ func (ctrl *PlaylistController) getPlaylists(w http.ResponseWriter, r *http.Requ
 		clientParam = models.SPOTIFY_SERVICE
 	}
 
-	client := user.GetClient(clientParam)
-	if client == nil {
+	c := user.GetClient(clientParam)
+	if c == nil {
 		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("getPlaylists: no %s client found for user %s", clientParam, user.GetState()))}
+	}
+
+	client, ok := c.(playlistsClient)
+	if !ok {
+		return utils.StatusError{http.StatusMethodNotAllowed, errors.New(fmt.Sprintf("getPlaylists: %s client does not satisfy interface", clientParam))}
 	}
 
 	playlists, err := client.GetPlaylists()
@@ -61,6 +70,10 @@ func (ctrl *PlaylistController) getPlaylists(w http.ResponseWriter, r *http.Requ
 	return nil
 }
 
+type playlistInfoClient interface {
+	GetPlaylistInfo(string, string) (*models.Playlist, error)
+}
+
 func (ctrl *PlaylistController) getPlaylistInfo(w http.ResponseWriter, r *http.Request) error {
 	user := ctrl.currentUser.Get(r)
 	if user == nil {
@@ -72,9 +85,14 @@ func (ctrl *PlaylistController) getPlaylistInfo(w http.ResponseWriter, r *http.R
 		clientParam = models.SPOTIFY_SERVICE
 	}
 
-	client := user.GetClient(clientParam)
-	if client == nil {
+	c := user.GetClient(clientParam)
+	if c == nil {
 		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("getPlaylists: no %s client found for user %s", clientParam, user.GetState()))}
+	}
+
+	client, ok := c.(playlistInfoClient)
+	if !ok {
+		return utils.StatusError{http.StatusMethodNotAllowed, errors.New(fmt.Sprintf("getPlaylists: %s client cannot be used to get playlist info"))}
 	}
 
 	vars := mux.Vars(r)

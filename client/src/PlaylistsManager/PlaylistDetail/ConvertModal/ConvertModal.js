@@ -38,7 +38,7 @@ class ConvertModal extends Component {
     let counter = 0;
     return tracks.reduce((promise, track) => {
       return promise
-        .then((res) => { console.log(res); if (res) return res.json(); })
+        .then((res) => { if (res) return res.json(); })
         .then((newPlaylist) => {
           console.log(`Converting ${track.Title}`);
           this.setState({ currentTrack: track.Title });

@@ -1,7 +1,6 @@
 package models
 
 import (
-	"errors"
 	"github.com/zmb3/spotify"
 	"log"
 )
@@ -66,10 +65,6 @@ func (client *spotifyClient) GetPlaylists() (Playlists, error) {
 			return playlists, nil
 		}
 	}
-}
-
-func (client *spotifyClient) CreatePlaylist(name string) (*Playlist, error) {
-	return nil, errors.New("Unimplemented")
 }
 
 func (client *spotifyClient) GetOwnPlaylistInfo(playlistId string) (*Playlist, error) {

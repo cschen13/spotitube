@@ -42,7 +42,7 @@ func (ya *YoutubeAuthenticator) BuildAuthURL(state string) string {
 	return ya.config.AuthCodeURL(state)
 }
 
-func (ya *YoutubeAuthenticator) newClient(state string, r *http.Request) (Client, error) {
+func (ya *YoutubeAuthenticator) newClient(state string, r *http.Request) (interface{}, error) {
 	token, err := ya.token(state, r)
 	if err != nil {
 		return nil, err

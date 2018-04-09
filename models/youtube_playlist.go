@@ -2,7 +2,6 @@ package models
 
 import (
 	"encoding/json"
-	"errors"
 	youtube "google.golang.org/api/youtube/v3"
 	"log"
 	"strings"
@@ -33,10 +32,6 @@ func (playlist *youtubePlaylist) GetCoverURL() string {
 		return thumbnails.Default.Url
 	}
 	return ""
-}
-
-func (client *youtubeClient) GetPlaylists() (playlists Playlists, err error) {
-	return nil, errors.New("youtube: GetPlaylists is unimplemented.")
 }
 
 func (client *youtubeClient) GetOwnPlaylistInfo(playlistId string) (*Playlist, error) {

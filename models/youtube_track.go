@@ -2,19 +2,10 @@ package models
 
 import (
 	"encoding/json"
-	"errors"
 	youtube "google.golang.org/api/youtube/v3"
 	"log"
 	"strings"
 )
-
-func (client *youtubeClient) GetTrackByID(videoId string) (*Track, error) {
-	return nil, errors.New("Unimplemented")
-}
-
-func (client *youtubeClient) GetTracks(playlist *Playlist) (Tracks, error) {
-	return nil, errors.New("Unimplemented")
-}
 
 func (client *youtubeClient) InsertTrack(playlist *Playlist, track *Track) (bool, error) {
 	playlistItem := &youtube.PlaylistItem{}

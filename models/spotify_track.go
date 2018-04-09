@@ -1,7 +1,6 @@
 package models
 
 import (
-	"errors"
 	"github.com/zmb3/spotify"
 	"log"
 )
@@ -64,8 +63,4 @@ func (client *spotifyClient) GetTracks(playlist *Playlist) (Tracks, error) {
 	}
 
 	return tracks, nil
-}
-
-func (client *spotifyClient) InsertTrack(playlist *Playlist, track *Track) (bool, error) {
-	return false, errors.New("Unimplemented")
 }

@@ -72,7 +72,7 @@ func (ctrl *AuthController) completeAuth(w http.ResponseWriter, r *http.Request)
 	if !present {
 		return utils.PageError{
 			http.StatusInternalServerError,
-			errors.New(fmt.Sprintf("initiateAuth: unrecognized service %s", service)),
+			errors.New(fmt.Sprintf("completeAuth: unrecognized service %s", service)),
 			"An error occurred while logging in. Please try again.",
 		}
 	}

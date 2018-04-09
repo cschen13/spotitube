@@ -7,14 +7,19 @@ import (
 
 type User struct {
 	state   string
-	clients map[string]Client
+	clients map[string]interface{}
 }
 
-// TODO: Abstract all clients into the User struct.
+type Authenticator interface {
+	BuildAuthURL(string) string
+	GetType() string
+	newClient(string, *http.Request) (interface{}, error)
+}
+
 func NewUser(state string, r *http.Request, auth Authenticator) (*User, error) {
 	user := &User{
 		state:   state,
-		clients: make(map[string]Client),
+		clients: make(map[string]interface{}),
 	}
 
 	err := user.AddClient(r, auth)
@@ -39,7 +44,7 @@ func (user *User) AddClient(r *http.Request, auth Authenticator) error {
 	return nil
 }
 
-func (user *User) GetClient(key string) Client {
+func (user *User) GetClient(key string) interface{} {
 	if client, present := user.clients[key]; present {
 		return client
 	}
