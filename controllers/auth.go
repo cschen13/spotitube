@@ -3,11 +3,12 @@ package controllers
 import (
 	"errors"
 	"fmt"
+	"log"
+	"net/http"
+
 	"github.com/cschen13/spotitube/models"
 	"github.com/cschen13/spotitube/utils"
 	"github.com/gorilla/mux"
-	"log"
-	"net/http"
 )
 
 const (
@@ -17,22 +18,22 @@ const (
 type AuthController struct {
 	sessionManager *utils.SessionManager
 	auths          map[string]models.Authenticator
-	currentUser    *utils.CurrentUserManager
+	// currentUser    *utils.CurrentUserManager
 }
 
-func NewAuthController(sessionManager *utils.SessionManager, auths map[string]models.Authenticator, currentUser *utils.CurrentUserManager) *AuthController {
-	return &AuthController{sessionManager: sessionManager, auths: auths, currentUser: currentUser}
+func NewAuthController(sessionManager *utils.SessionManager, auths map[string]models.Authenticator) *AuthController {
+	return &AuthController{sessionManager: sessionManager, auths: auths}
 }
 
 func (ctrl *AuthController) Register(router *mux.Router) {
 	router.Handle("/login/{"+SERVICE_PARAM+"}", utils.Handler(ctrl.initiateAuth))
 	router.Handle("/callback/{"+SERVICE_PARAM+"}", utils.Handler(ctrl.completeAuth))
-	router.Handle("/logout", utils.Handler(ctrl.logout))
+	// router.Handle("/logout", utils.Handler(ctrl.logout))
 }
 
 func (ctrl *AuthController) initiateAuth(w http.ResponseWriter, r *http.Request) error {
 	if returnURL := r.FormValue("returnURL"); returnURL != "" {
-		ctrl.sessionManager.Set(r, w, "RedirectAfterLogin", returnURL)
+		ctrl.sessionManager.SetRedirect(r, w, returnURL)
 	}
 
 	service := mux.Vars(r)[SERVICE_PARAM]
@@ -46,18 +47,13 @@ func (ctrl *AuthController) initiateAuth(w http.ResponseWriter, r *http.Request)
 	}
 
 	state := utils.GenerateRandStr(128)
-	if user := ctrl.currentUser.Get(r); user == nil {
-		err := ctrl.sessionManager.Set(r, w, utils.USER_STATE_KEY, state)
-		if err != nil {
-			return utils.PageError{
-				http.StatusInternalServerError,
-				err,
-				"An error occurred while logging in. Please clear your cookies and try again.",
-			}
+	err := ctrl.sessionManager.SetState(r, w, state)
+	if err != nil {
+		return utils.PageError{
+			http.StatusInternalServerError,
+			err,
+			"An error occurred while logging in. Please clear your cookies and try again.",
 		}
-
-	} else {
-		state = user.GetState()
 	}
 
 	url := auth.BuildAuthURL(state)
@@ -77,38 +73,46 @@ func (ctrl *AuthController) completeAuth(w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	clientType := auth.GetType()
-	if user := ctrl.currentUser.Get(r); user != nil {
-		if err := user.AddClient(r, auth); err != nil {
-			return utils.PageError{
-				http.StatusInternalServerError,
-				err,
-				"An error occurred while logging in. Please try again.",
-			}
+	client, err := auth.NewClient(ctrl.sessionManager.GetState(r), r)
+	if err != nil {
+		return utils.PageError{
+			http.StatusBadRequest,
+			err,
+			"An error occurred while logging in. Please try again.",
 		}
-
-		log.Printf("New %s client added to user %s", clientType, user.GetState())
-	} else if storedState := ctrl.sessionManager.Get(r, utils.USER_STATE_KEY); storedState != "" {
-		user, err := models.NewUser(storedState, r, auth)
-		if err != nil {
-			return utils.PageError{
-				http.StatusInternalServerError,
-				err,
-				"An error occurred while logging in. Please try again.",
-			}
-		}
-
-		user.Add()
-		log.Printf("New %s client added to NEW user %s", clientType, storedState)
-	} else {
-		log.Print("No cookie for user found")
-		http.Redirect(w, r, "/login/"+service, http.StatusFound)
-		return nil
 	}
 
+	ctrl.sessionManager.SetClient(r, w, auth.GetType(), client)
+	// TODO: Add client to session instead of to a user.
+	// if user := ctrl.currentUser.Get(r); user != nil {
+	// 	if err := user.AddClient(r, auth); err != nil {
+	// 		return utils.PageError{
+	// 			http.StatusInternalServerError,
+	// 			err,
+	// 			"An error occurred while logging in. Please try again.",
+	// 		}
+	// 	}
+
+	// 	log.Printf("New %s client added to user %s", clientType, user.GetState())
+	// } else if storedState := ctrl.sessionManager.Get(r, utils.USER_STATE_KEY); storedState != "" {
+	// 	user, err := models.NewUser(storedState, r, auth)
+	// 	if err != nil {
+	// 		return utils.PageError{
+	// 			http.StatusInternalServerError,
+	// 			err,
+	// 			"An error occurred while logging in. Please try again.",
+	// 		}
+	// 	}
+
+	// 	user.Add()
+	// 	log.Printf("New %s client added to NEW user %s", clientType, storedState)
+	// } else {
+
+	// }
+
 	redirectTo := "/"
-	if returnURL := ctrl.sessionManager.Get(r, "RedirectAfterLogin"); returnURL != "" {
-		ctrl.sessionManager.Delete(r, w, "RedirectAfterLogin")
+	if returnURL := ctrl.sessionManager.GetRedirect(r); returnURL != "" {
+		ctrl.sessionManager.DeleteRedirect(r, w)
 		redirectTo = returnURL
 	}
 
@@ -116,17 +120,17 @@ func (ctrl *AuthController) completeAuth(w http.ResponseWriter, r *http.Request)
 	return nil
 }
 
-func (ctrl *AuthController) logout(w http.ResponseWriter, r *http.Request) error {
-	models.DeleteUser(ctrl.sessionManager.Get(r, utils.USER_STATE_KEY))
-	err := ctrl.sessionManager.Delete(r, w, utils.USER_STATE_KEY)
-	if err != nil {
-		return utils.PageError{
-			http.StatusInternalServerError,
-			err,
-			"An error occurred while logging out.",
-		}
-	}
+// func (ctrl *AuthController) logout(w http.ResponseWriter, r *http.Request) error {
+// 	models.DeleteUser(ctrl.sessionManager.Get(r, utils.USER_STATE_KEY))
+// 	err := ctrl.sessionManager.Delete(r, w, utils.USER_STATE_KEY)
+// 	if err != nil {
+// 		return utils.PageError{
+// 			http.StatusInternalServerError,
+// 			err,
+// 			"An error occurred while logging out.",
+// 		}
+// 	}
 
-	http.Redirect(w, r, "/", http.StatusFound)
-	return nil
-}
+// 	http.Redirect(w, r, "/", http.StatusFound)
+// 	return nil
+// }
