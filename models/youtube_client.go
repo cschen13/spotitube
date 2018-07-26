@@ -4,14 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
+	youtube "google.golang.org/api/youtube/v3"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
-
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
-	youtube "google.golang.org/api/youtube/v3"
 )
 
 const YOUTUBE_SERVICE = "youtube"
@@ -43,7 +42,7 @@ func (ya *YoutubeAuthenticator) BuildAuthURL(state string) string {
 	return ya.config.AuthCodeURL(state)
 }
 
-func (ya *YoutubeAuthenticator) NewClient(state string, r *http.Request) (interface{}, error) {
+func (ya *YoutubeAuthenticator) newClient(state string, r *http.Request) (interface{}, error) {
 	token, err := ya.token(state, r)
 	if err != nil {
 		return nil, err
@@ -86,7 +85,7 @@ func (ya *YoutubeAuthenticator) token(state string, r *http.Request) (*oauth2.To
 		return nil, errors.New("youtube: didn't get access code")
 	}
 	actualState := values.Get("state")
-	if actualState == "" || actualState != state {
+	if actualState != state {
 		return nil, errors.New("youtube: redirect state parameter doesn't match")
 	}
 	return ya.config.Exchange(ya.context, code)

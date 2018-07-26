@@ -1,9 +1,8 @@
 package models
 
 import (
-	"log"
-
 	"github.com/zmb3/spotify"
+	"log"
 )
 
 const SPOTIFY_PLAYLISTS_PAGE_LIMIT = 50

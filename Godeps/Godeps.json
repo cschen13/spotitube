@@ -25,8 +25,8 @@
 		},
 		{
 			"ImportPath": "github.com/gorilla/sessions",
-			"Comment": "v1.1.1",
-			"Rev": "03b6f63cc43ef9c7240a635a5e22b13180e822b8"
+			"Comment": "v1.1-7-gb61c93c",
+			"Rev": "b61c93cb7f67533c8bfbb5ea450efc07e5833c5e"
 		},
 		{
 			"ImportPath": "github.com/urfave/negroni",
