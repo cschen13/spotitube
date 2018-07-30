@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/gob"
 	"log"
 	"net/http"
 
@@ -106,4 +107,8 @@ func HandleUsers() {
 			delete(users, state)
 		}
 	}
+}
+
+func init() {
+	gob.Register(&oauth2.Token{})
 }

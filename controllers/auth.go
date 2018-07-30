@@ -47,19 +47,19 @@ func (ctrl *AuthController) initiateAuth(w http.ResponseWriter, r *http.Request)
 	}
 
 	state := utils.GenerateRandStr(128)
-	if user := ctrl.currentUser.Get(r); user == nil {
-		err := ctrl.sessionManager.Set(r, w, utils.USER_STATE_KEY, state)
-		if err != nil {
-			return utils.PageError{
-				http.StatusInternalServerError,
-				err,
-				"An error occurred while logging in. Please clear your cookies and try again.",
-			}
+	// if user := ctrl.currentUser.Get(r); user == nil {
+	err := ctrl.sessionManager.Set(r, w, utils.USER_STATE_KEY, state)
+	if err != nil {
+		return utils.PageError{
+			http.StatusInternalServerError,
+			err,
+			"An error occurred while logging in. Please clear your cookies and try again.",
 		}
-
-	} else {
-		state = user.GetState()
 	}
+
+	// } else {
+	// state = user.GetState()
+	// }
 
 	url := auth.BuildAuthURL(state)
 	log.Printf("Redirecting user to %s", url)
@@ -78,34 +78,48 @@ func (ctrl *AuthController) completeAuth(w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	clientType := auth.GetType()
-	if user := ctrl.currentUser.Get(r); user != nil {
-		if err := user.AddToken(r, auth); err != nil {
-			return utils.PageError{
-				http.StatusInternalServerError,
-				err,
-				"An error occurred while logging in. Please try again.",
-			}
+	// clientType := auth.GetType()
+	tok, err := auth.GenerateToken(ctrl.sessionManager.Get(r, utils.USER_STATE_KEY), r)
+	if err != nil {
+		return utils.PageError{
+			http.StatusInternalServerError,
+			err,
+			"An error occurred while logging in. Please try again.",
 		}
-
-		log.Printf("New %s client added to user %s", clientType, user.GetState())
-	} else if storedState := ctrl.sessionManager.Get(r, utils.USER_STATE_KEY); storedState != "" {
-		user, err := models.NewUser(storedState, r, auth)
-		if err != nil {
-			return utils.PageError{
-				http.StatusInternalServerError,
-				err,
-				"An error occurred while logging in. Please try again.",
-			}
-		}
-
-		user.Add()
-		log.Printf("New %s client added to NEW user %s", clientType, storedState)
-	} else {
-		log.Print("No cookie for user found")
-		http.Redirect(w, r, "/login/"+service, http.StatusFound)
-		return nil
 	}
+
+	err = ctrl.sessionManager.Set(r, w, auth.GetType(), tok)
+	if err != nil {
+		return err
+	}
+
+	// if user := ctrl.currentUser.Get(r); user != nil {
+	// 	if err := user.AddToken(r, auth); err != nil {
+	// 		return utils.PageError{
+	// 			http.StatusInternalServerError,
+	// 			err,
+	// 			"An error occurred while logging in. Please try again.",
+	// 		}
+	// 	}
+
+	// 	log.Printf("New %s client added to user %s", clientType, user.GetState())
+	// } else if storedState := ctrl.sessionManager.Get(r, utils.USER_STATE_KEY); storedState != "" {
+	// 	user, err := models.NewUser(storedState, r, auth)
+	// 	if err != nil {
+	// 		return utils.PageError{
+	// 			http.StatusInternalServerError,
+	// 			err,
+	// 			"An error occurred while logging in. Please try again.",
+	// 		}
+	// 	}
+
+	// 	user.Add()
+	// 	log.Printf("New %s client added to NEW user %s", clientType, storedState)
+	// } else {
+	// 	log.Print("No cookie for user found")
+	// 	http.Redirect(w, r, "/login/"+service, http.StatusFound)
+	// 	return nil
+	// }
 
 	redirectTo := "/"
 	if returnURL := ctrl.sessionManager.Get(r, "RedirectAfterLogin"); returnURL != "" {

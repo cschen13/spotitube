@@ -38,24 +38,24 @@ type playlistsClient interface {
 }
 
 func (ctrl *PlaylistController) getPlaylists(w http.ResponseWriter, r *http.Request) error {
-	user := ctrl.currentUser.Get(r)
-	if user == nil {
-		return utils.StatusError{http.StatusUnauthorized, errors.New("getPlaylists: user not logged in")}
-	}
+	// user := ctrl.currentUser.Get(r)
+	// if user == nil {
+	// return utils.StatusError{http.StatusUnauthorized, errors.New("getPlaylists: user not logged in")}
+	// }
 
 	clientParam := r.URL.Query().Get(CLIENT_PARAM)
 	if clientParam == "" {
 		clientParam = models.SPOTIFY_SERVICE
 	}
 
-	tok := user.GetToken(clientParam)
+	tok := ctrl.sessionManager.GetToken(r, clientParam)
 	if tok == nil {
-		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("getPlaylists: no %s client found for user %s", clientParam, user.GetState()))}
+		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("getPlaylists: no %s client found for user %s", clientParam, ctrl.sessionManager.Get(r, utils.USER_STATE_KEY)))}
 	}
 
 	c, err := ctrl.auths[clientParam].NewClient(tok)
 	if err != nil {
-		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("getPlaylists: no %s client found for user %s", clientParam, user.GetState()))}
+		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("getPlaylists: no %s client found for user %s", clientParam, ctrl.sessionManager.Get(r, utils.USER_STATE_KEY)))}
 	}
 
 	client, ok := c.(playlistsClient)
@@ -83,24 +83,24 @@ type playlistInfoClient interface {
 }
 
 func (ctrl *PlaylistController) getPlaylistInfo(w http.ResponseWriter, r *http.Request) error {
-	user := ctrl.currentUser.Get(r)
-	if user == nil {
-		return utils.StatusError{http.StatusUnauthorized, errors.New("getPlaylists: user not logged in")}
-	}
+	// user := ctrl.currentUser.Get(r)
+	// if user == nil {
+	// return utils.StatusError{http.StatusUnauthorized, errors.New("getPlaylists: user not logged in")}
+	// }
 
 	clientParam := r.URL.Query().Get(CLIENT_PARAM)
 	if clientParam == "" {
 		clientParam = models.SPOTIFY_SERVICE
 	}
 
-	tok := user.GetToken(clientParam)
+	tok := ctrl.sessionManager.GetToken(r, clientParam)
 	if tok == nil {
-		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("getPlaylists: no %s client found for user %s", clientParam, user.GetState()))}
+		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("getPlaylists: no %s client found for user %s", clientParam, ctrl.sessionManager.Get(r, utils.USER_STATE_KEY)))}
 	}
 
 	c, err := ctrl.auths[clientParam].NewClient(tok)
 	if err != nil {
-		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("getPlaylists: no %s client found for user %s", clientParam, user.GetState()))}
+		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("getPlaylists: no %s client found for user %s", clientParam, ctrl.sessionManager.Get(r, utils.USER_STATE_KEY)))}
 	}
 
 	client, ok := c.(playlistInfoClient)
