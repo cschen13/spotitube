@@ -4,13 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
-	youtube "google.golang.org/api/youtube/v3"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
+	youtube "google.golang.org/api/youtube/v3"
 )
 
 const YOUTUBE_SERVICE = "youtube"
@@ -42,12 +43,11 @@ func (ya *YoutubeAuthenticator) BuildAuthURL(state string) string {
 	return ya.config.AuthCodeURL(state)
 }
 
-func (ya *YoutubeAuthenticator) newClient(state string, r *http.Request) (interface{}, error) {
-	token, err := ya.token(state, r)
-	if err != nil {
-		return nil, err
-	}
+func (ya *YoutubeAuthenticator) GenerateToken(state string, r *http.Request) (*oauth2.Token, error) {
+	return ya.token(state, r)
+}
 
+func (ya *YoutubeAuthenticator) NewClient(token *oauth2.Token) (interface{}, error) {
 	client := ya.config.Client(ya.context, token)
 	service, err := youtube.New(client)
 	if err != nil {
@@ -69,7 +69,6 @@ func (ya *YoutubeAuthenticator) newClient(state string, r *http.Request) (interf
 
 	return &youtubeClient{
 		service,
-		token,
 	}, nil
 }
 
@@ -97,7 +96,6 @@ func (ya *YoutubeAuthenticator) GetType() string {
 
 type youtubeClient struct {
 	*youtube.Service
-	token *oauth2.Token
 }
 
 func addPropertyToResource(ref map[string]interface{}, keys []string, value string, count int) map[string]interface{} {

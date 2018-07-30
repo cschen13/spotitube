@@ -3,11 +3,12 @@ package controllers
 import (
 	"errors"
 	"fmt"
+	"log"
+	"net/http"
+
 	"github.com/cschen13/spotitube/models"
 	"github.com/cschen13/spotitube/utils"
 	"github.com/gorilla/mux"
-	"log"
-	"net/http"
 )
 
 const (
@@ -79,7 +80,7 @@ func (ctrl *AuthController) completeAuth(w http.ResponseWriter, r *http.Request)
 
 	clientType := auth.GetType()
 	if user := ctrl.currentUser.Get(r); user != nil {
-		if err := user.AddClient(r, auth); err != nil {
+		if err := user.AddToken(r, auth); err != nil {
 			return utils.PageError{
 				http.StatusInternalServerError,
 				err,

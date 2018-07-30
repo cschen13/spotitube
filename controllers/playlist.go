@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/cschen13/spotitube/models"
 	"github.com/cschen13/spotitube/utils"
 	"github.com/gorilla/mux"
+
 	// "log"
 	"net/http"
 )
@@ -19,10 +21,11 @@ const (
 type PlaylistController struct {
 	sessionManager *utils.SessionManager
 	currentUser    *utils.CurrentUserManager
+	auths          map[string]models.Authenticator
 }
 
-func NewPlaylistController(sessionManager *utils.SessionManager, currentUser *utils.CurrentUserManager) *PlaylistController {
-	return &PlaylistController{sessionManager: sessionManager, currentUser: currentUser}
+func NewPlaylistController(sessionManager *utils.SessionManager, currentUser *utils.CurrentUserManager, auths map[string]models.Authenticator) *PlaylistController {
+	return &PlaylistController{sessionManager: sessionManager, currentUser: currentUser, auths: auths}
 }
 
 func (ctrl *PlaylistController) Register(router *mux.Router) {
@@ -45,8 +48,13 @@ func (ctrl *PlaylistController) getPlaylists(w http.ResponseWriter, r *http.Requ
 		clientParam = models.SPOTIFY_SERVICE
 	}
 
-	c := user.GetClient(clientParam)
-	if c == nil {
+	tok := user.GetToken(clientParam)
+	if tok == nil {
+		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("getPlaylists: no %s client found for user %s", clientParam, user.GetState()))}
+	}
+
+	c, err := ctrl.auths[clientParam].NewClient(tok)
+	if err != nil {
 		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("getPlaylists: no %s client found for user %s", clientParam, user.GetState()))}
 	}
 
@@ -85,8 +93,13 @@ func (ctrl *PlaylistController) getPlaylistInfo(w http.ResponseWriter, r *http.R
 		clientParam = models.SPOTIFY_SERVICE
 	}
 
-	c := user.GetClient(clientParam)
-	if c == nil {
+	tok := user.GetToken(clientParam)
+	if tok == nil {
+		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("getPlaylists: no %s client found for user %s", clientParam, user.GetState()))}
+	}
+
+	c, err := ctrl.auths[clientParam].NewClient(tok)
+	if err != nil {
 		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("getPlaylists: no %s client found for user %s", clientParam, user.GetState()))}
 	}
 

@@ -1,9 +1,10 @@
 package models
 
 import (
+	"net/http"
+
 	"github.com/zmb3/spotify"
 	"golang.org/x/oauth2"
-	"net/http"
 )
 
 const (
@@ -29,15 +30,13 @@ func (sa *SpotifyAuthenticator) BuildAuthURL(state string) string {
 	return sa.auth.AuthURL(state)
 }
 
-func (sa *SpotifyAuthenticator) newClient(state string, r *http.Request) (interface{}, error) {
-	// acquire access token (also checks state parameter)
-	tok, err := sa.auth.Token(state, r)
-	if err != nil {
-		return nil, err
-	}
+func (sa *SpotifyAuthenticator) GenerateToken(state string, r *http.Request) (*oauth2.Token, error) {
+	return sa.auth.Token(state, r)
+}
 
+func (sa *SpotifyAuthenticator) NewClient(tok *oauth2.Token) (interface{}, error) {
 	client := sa.auth.NewClient(tok)
-	return &spotifyClient{&client, tok}, nil
+	return &spotifyClient{&client}, nil
 }
 
 func (sa *SpotifyAuthenticator) GetType() string {
@@ -46,5 +45,4 @@ func (sa *SpotifyAuthenticator) GetType() string {
 
 type spotifyClient struct {
 	*spotify.Client
-	token *oauth2.Token
 }

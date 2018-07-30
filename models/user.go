@@ -3,26 +3,29 @@ package models
 import (
 	"log"
 	"net/http"
+
+	"golang.org/x/oauth2"
 )
 
 type User struct {
-	state   string
-	clients map[string]interface{}
+	state  string
+	tokens map[string]*oauth2.Token
 }
 
 type Authenticator interface {
 	BuildAuthURL(string) string
 	GetType() string
-	newClient(string, *http.Request) (interface{}, error)
+	GenerateToken(string, *http.Request) (*oauth2.Token, error)
+	NewClient(*oauth2.Token) (interface{}, error)
 }
 
 func NewUser(state string, r *http.Request, auth Authenticator) (*User, error) {
 	user := &User{
-		state:   state,
-		clients: make(map[string]interface{}),
+		state:  state,
+		tokens: make(map[string]*oauth2.Token),
 	}
 
-	err := user.AddClient(r, auth)
+	err := user.AddToken(r, auth)
 	if err != nil {
 		log.Printf("Error adding new user with state %s: %s", state, err.Error())
 		return nil, err
@@ -34,19 +37,19 @@ func (user *User) GetState() string {
 	return user.state
 }
 
-func (user *User) AddClient(r *http.Request, auth Authenticator) error {
-	client, err := auth.newClient(user.state, r)
+func (user *User) AddToken(r *http.Request, auth Authenticator) error {
+	tok, err := auth.GenerateToken(user.state, r)
 	if err != nil {
 		return err
 	}
 
-	user.clients[auth.GetType()] = client
+	user.tokens[auth.GetType()] = tok
 	return nil
 }
 
-func (user *User) GetClient(key string) interface{} {
-	if client, present := user.clients[key]; present {
-		return client
+func (user *User) GetToken(key string) *oauth2.Token {
+	if token, present := user.tokens[key]; present {
+		return token
 	}
 	return nil
 }

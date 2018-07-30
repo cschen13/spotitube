@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/cschen13/spotitube/models"
 	"github.com/cschen13/spotitube/utils"
 	"github.com/gorilla/mux"
+
 	// "log"
 	"net/http"
 )
@@ -21,10 +23,11 @@ const (
 type TrackController struct {
 	sessionManager *utils.SessionManager
 	currentUser    *utils.CurrentUserManager
+	auths          map[string]models.Authenticator
 }
 
-func NewTrackController(sessionManager *utils.SessionManager, currentUser *utils.CurrentUserManager) *TrackController {
-	return &TrackController{sessionManager: sessionManager, currentUser: currentUser}
+func NewTrackController(sessionManager *utils.SessionManager, currentUser *utils.CurrentUserManager, auths map[string]models.Authenticator) *TrackController {
+	return &TrackController{sessionManager: sessionManager, currentUser: currentUser, auths: auths}
 }
 
 func (ctrl *TrackController) Register(router *mux.Router) {
@@ -56,9 +59,16 @@ func (ctrl *TrackController) getTracks(w http.ResponseWriter, r *http.Request) e
 		return utils.StatusError{http.StatusUnauthorized, errors.New("getTracks: user not logged in")}
 	}
 
-	c := user.GetClient(models.SPOTIFY_SERVICE)
-	if c == nil {
-		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("getTracks: no %s client found for user %s", models.SPOTIFY_SERVICE, user.GetState()))}
+	clientParam := models.SPOTIFY_SERVICE
+
+	tok := user.GetToken(clientParam)
+	if tok == nil {
+		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("getPlaylists: no %s client found for user %s", clientParam, user.GetState()))}
+	}
+
+	c, err := ctrl.auths[clientParam].NewClient(tok)
+	if err != nil {
+		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("getPlaylists: no %s client found for user %s", clientParam, user.GetState()))}
 	}
 
 	client, ok := c.(tracksClient)
@@ -119,9 +129,16 @@ func (ctrl *TrackController) convert(w http.ResponseWriter, r *http.Request) err
 		return utils.StatusError{http.StatusUnauthorized, errors.New("getTracks: user not logged in")}
 	}
 
-	c := user.GetClient(models.SPOTIFY_SERVICE)
-	if c == nil {
-		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("convert: no %s client found for user %s", models.SPOTIFY_SERVICE, user.GetState()))}
+	clientParam := models.SPOTIFY_SERVICE
+
+	tok := user.GetToken(clientParam)
+	if tok == nil {
+		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("getPlaylists: no %s client found for user %s", clientParam, user.GetState()))}
+	}
+
+	c, err := ctrl.auths[clientParam].NewClient(tok)
+	if err != nil {
+		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("getPlaylists: no %s client found for user %s", clientParam, user.GetState()))}
 	}
 
 	spotify, ok := c.(convertSrcClient)
@@ -129,9 +146,16 @@ func (ctrl *TrackController) convert(w http.ResponseWriter, r *http.Request) err
 		return utils.StatusError{http.StatusMethodNotAllowed, errors.New(fmt.Sprintf("convert: %s client does not satisfy source interface"))}
 	}
 
-	c = user.GetClient(models.YOUTUBE_SERVICE)
-	if c == nil {
-		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("convert: no %s client found for user %s", models.YOUTUBE_SERVICE, user.GetState()))}
+	clientParam = models.YOUTUBE_SERVICE
+
+	tok = user.GetToken(clientParam)
+	if tok == nil {
+		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("getPlaylists: no %s client found for user %s", clientParam, user.GetState()))}
+	}
+
+	c, err = ctrl.auths[clientParam].NewClient(tok)
+	if err != nil {
+		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("getPlaylists: no %s client found for user %s", clientParam, user.GetState()))}
 	}
 
 	youtube, ok := c.(convertDstClient)

@@ -1,15 +1,16 @@
 package server
 
 import (
+	"log"
+	"net/http"
+	"os"
+
 	"github.com/cschen13/spotitube/controllers"
 	"github.com/cschen13/spotitube/models"
 	"github.com/cschen13/spotitube/server/middleware"
 	"github.com/cschen13/spotitube/utils"
 	"github.com/gorilla/mux"
 	"github.com/urfave/negroni"
-	"log"
-	"net/http"
-	"os"
 )
 
 type Server struct {
@@ -46,8 +47,8 @@ func NewServer(host string, port string, sessionSecret string, userManagerKey in
 	auths[youtubeAuth.GetType()] = youtubeAuth
 
 	authCtrl := controllers.NewAuthController(sessionManager, auths, currentUser)
-	playlistCtrl := controllers.NewPlaylistController(sessionManager, currentUser)
-	trackCtrl := controllers.NewTrackController(sessionManager, currentUser)
+	playlistCtrl := controllers.NewPlaylistController(sessionManager, currentUser, auths)
+	trackCtrl := controllers.NewTrackController(sessionManager, currentUser, auths)
 	authCtrl.Register(router)
 	playlistCtrl.Register(router)
 	trackCtrl.Register(router)
