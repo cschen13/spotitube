@@ -7,7 +7,6 @@ import (
 
 	"github.com/cschen13/spotitube/controllers"
 	"github.com/cschen13/spotitube/models"
-	"github.com/cschen13/spotitube/server/middleware"
 	"github.com/cschen13/spotitube/utils"
 	"github.com/gorilla/mux"
 	"github.com/urfave/negroni"
@@ -23,9 +22,9 @@ func NewServer(host string, port string, sessionSecret string, userManagerKey in
 	isDev := port != devPort
 	server := Server{negroni.Classic(), host, port}
 	sessionManager := utils.NewSessionManager([]byte(sessionSecret))
-	currentUser := utils.NewCurrentUserManager(userManagerKey)
-	userContext := middleware.NewUserContext(currentUser, sessionManager)
-	server.Use(userContext.Middleware())
+	// currentUser := utils.NewCurrentUserManager(userManagerKey)
+	// userContext := middleware.NewUserContext(currentUser, sessionManager)
+	// server.Use(userContext.Middleware())
 
 	router := mux.NewRouter()
 	var spotifyAuth *models.SpotifyAuthenticator
@@ -46,9 +45,9 @@ func NewServer(host string, port string, sessionSecret string, userManagerKey in
 	auths[spotifyAuth.GetType()] = spotifyAuth
 	auths[youtubeAuth.GetType()] = youtubeAuth
 
-	authCtrl := controllers.NewAuthController(sessionManager, auths, currentUser)
-	playlistCtrl := controllers.NewPlaylistController(sessionManager, currentUser, auths)
-	trackCtrl := controllers.NewTrackController(sessionManager, currentUser, auths)
+	authCtrl := controllers.NewAuthController(sessionManager, auths)
+	playlistCtrl := controllers.NewPlaylistController(sessionManager, auths)
+	trackCtrl := controllers.NewTrackController(sessionManager, auths)
 	authCtrl.Register(router)
 	playlistCtrl.Register(router)
 	trackCtrl.Register(router)
@@ -77,7 +76,7 @@ func NewServer(host string, port string, sessionSecret string, userManagerKey in
 }
 
 func (server *Server) Start() {
-	go models.HandleUsers()
+	// go models.HandleUsers()
 	log.Printf("Spinning up the server at %s%s...", server.host, server.port)
 	err := http.ListenAndServe(server.port, server)
 	log.Printf(err.Error())

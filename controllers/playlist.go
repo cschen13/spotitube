@@ -13,21 +13,19 @@ import (
 	"net/http"
 )
 
-const (
-	PAGE_PARAM   = "page"
-	CLIENT_PARAM = "client"
-)
-
+// PlaylistController holds all API endpoints related to high-level playlist information.
 type PlaylistController struct {
 	sessionManager *utils.SessionManager
-	currentUser    *utils.CurrentUserManager
-	auths          map[string]models.Authenticator
+	// currentUser    *utils.CurrentUserManager
+	auths map[string]models.Authenticator
 }
 
-func NewPlaylistController(sessionManager *utils.SessionManager, currentUser *utils.CurrentUserManager, auths map[string]models.Authenticator) *PlaylistController {
-	return &PlaylistController{sessionManager: sessionManager, currentUser: currentUser, auths: auths}
+// NewPlaylistController instantiates a new PlaylistController.
+func NewPlaylistController(sessionManager *utils.SessionManager, auths map[string]models.Authenticator) *PlaylistController {
+	return &PlaylistController{sessionManager: sessionManager, auths: auths}
 }
 
+// Register takes all endpoints in the controller and registers them with a router.
 func (ctrl *PlaylistController) Register(router *mux.Router) {
 	router.Handle("/playlists", utils.Handler(ctrl.getPlaylists))
 	router.Handle("/playlists/{"+OWNER_ID_PARAM+"}/{"+PLAYLIST_ID_PARAM+"}", utils.Handler(ctrl.getPlaylistInfo))
@@ -38,39 +36,49 @@ type playlistsClient interface {
 }
 
 func (ctrl *PlaylistController) getPlaylists(w http.ResponseWriter, r *http.Request) error {
-	// user := ctrl.currentUser.Get(r)
-	// if user == nil {
-	// return utils.StatusError{http.StatusUnauthorized, errors.New("getPlaylists: user not logged in")}
-	// }
-
-	clientParam := r.URL.Query().Get(CLIENT_PARAM)
-	if clientParam == "" {
-		clientParam = models.SPOTIFY_SERVICE
+	clientType := r.URL.Query().Get(CLIENT_PARAM)
+	if clientType == "" {
+		clientType = models.SPOTIFY_SERVICE
 	}
 
-	tok := ctrl.sessionManager.GetToken(r, clientParam)
-	if tok == nil {
-		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("getPlaylists: no %s client found for user %s", clientParam, ctrl.sessionManager.Get(r, utils.USER_STATE_KEY)))}
-	}
-
-	c, err := ctrl.auths[clientParam].NewClient(tok)
+	tok, err := ctrl.sessionManager.GetToken(r, clientType)
 	if err != nil {
-		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("getPlaylists: no %s client found for user %s", clientParam, ctrl.sessionManager.Get(r, utils.USER_STATE_KEY)))}
+		return utils.StatusError{
+			Code: http.StatusUnauthorized,
+			Err:  fmt.Errorf("getPlaylists: no %s client found", clientType),
+		}
+	}
+
+	c, err := ctrl.auths[clientType].NewClient(tok)
+	if err != nil {
+		return utils.StatusError{
+			Code: http.StatusUnauthorized,
+			Err:  fmt.Errorf("getPlaylists: no %s client found", clientType),
+		}
 	}
 
 	client, ok := c.(playlistsClient)
 	if !ok {
-		return utils.StatusError{http.StatusMethodNotAllowed, errors.New(fmt.Sprintf("getPlaylists: %s client does not satisfy interface", clientParam))}
+		return utils.StatusError{
+			Code: http.StatusMethodNotAllowed,
+			Err:  fmt.Errorf("getPlaylists: %s client does not satisfy interface", clientType),
+		}
 	}
 
 	playlists, err := client.GetPlaylists()
 	if err != nil {
-		return utils.StatusError{http.StatusInternalServerError, err}
+		return utils.StatusError{
+			Code: http.StatusInternalServerError,
+			Err:  err,
+		}
 	}
 
 	js, err := json.Marshal(playlists)
 	if err != nil {
-		return utils.StatusError{http.StatusInternalServerError, err}
+		return utils.StatusError{
+			Code: http.StatusInternalServerError,
+			Err:  err,
+		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -83,50 +91,66 @@ type playlistInfoClient interface {
 }
 
 func (ctrl *PlaylistController) getPlaylistInfo(w http.ResponseWriter, r *http.Request) error {
-	// user := ctrl.currentUser.Get(r)
-	// if user == nil {
-	// return utils.StatusError{http.StatusUnauthorized, errors.New("getPlaylists: user not logged in")}
-	// }
-
-	clientParam := r.URL.Query().Get(CLIENT_PARAM)
-	if clientParam == "" {
-		clientParam = models.SPOTIFY_SERVICE
+	clientType := r.URL.Query().Get(CLIENT_PARAM)
+	if clientType == "" {
+		clientType = models.SPOTIFY_SERVICE
 	}
 
-	tok := ctrl.sessionManager.GetToken(r, clientParam)
-	if tok == nil {
-		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("getPlaylists: no %s client found for user %s", clientParam, ctrl.sessionManager.Get(r, utils.USER_STATE_KEY)))}
-	}
-
-	c, err := ctrl.auths[clientParam].NewClient(tok)
+	tok, err := ctrl.sessionManager.GetToken(r, clientType)
 	if err != nil {
-		return utils.StatusError{http.StatusUnauthorized, errors.New(fmt.Sprintf("getPlaylists: no %s client found for user %s", clientParam, ctrl.sessionManager.Get(r, utils.USER_STATE_KEY)))}
+		return utils.StatusError{
+			Code: http.StatusUnauthorized,
+			Err:  fmt.Errorf("getPlaylistInfo: no %s client found", clientType),
+		}
+	}
+
+	c, err := ctrl.auths[clientType].NewClient(tok)
+	if err != nil {
+		return utils.StatusError{
+			Code: http.StatusUnauthorized,
+			Err:  fmt.Errorf("getPlaylistInfo: no %s client found", clientType),
+		}
 	}
 
 	client, ok := c.(playlistInfoClient)
 	if !ok {
-		return utils.StatusError{http.StatusMethodNotAllowed, errors.New(fmt.Sprintf("getPlaylists: %s client cannot be used to get playlist info"))}
+		return utils.StatusError{
+			Code: http.StatusMethodNotAllowed,
+			Err:  fmt.Errorf("getPlaylistInfo: %s client cannot be used to get playlist info", clientType),
+		}
 	}
 
 	vars := mux.Vars(r)
-	ownerId, present := vars[OWNER_ID_PARAM]
+	ownerID, present := vars[OWNER_ID_PARAM]
 	if !present {
-		return utils.StatusError{http.StatusUnprocessableEntity, errors.New("getPlaylists: URL is missing an owner ID")}
+		return utils.StatusError{
+			Code: http.StatusUnprocessableEntity,
+			Err:  errors.New("getPlaylistInfo: URL is missing an owner ID"),
+		}
 	}
 
-	playlistId, present := vars[PLAYLIST_ID_PARAM]
+	playlistID, present := vars[PLAYLIST_ID_PARAM]
 	if !present {
-		return utils.StatusError{http.StatusUnprocessableEntity, errors.New("getPlaylists: URL is missing a playlist ID")}
+		return utils.StatusError{
+			Code: http.StatusUnprocessableEntity,
+			Err:  errors.New("getPlaylistInfo: URL is missing a playlist ID"),
+		}
 	}
 
-	playlist, err := client.GetPlaylistInfo(ownerId, playlistId)
+	playlist, err := client.GetPlaylistInfo(ownerID, playlistID)
 	if err != nil {
-		return utils.StatusError{http.StatusInternalServerError, err}
+		return utils.StatusError{
+			Code: http.StatusInternalServerError,
+			Err:  err,
+		}
 	}
 
 	js, err := json.Marshal(playlist)
 	if err != nil {
-		return utils.StatusError{http.StatusInternalServerError, err}
+		return utils.StatusError{
+			Code: http.StatusInternalServerError,
+			Err:  err,
+		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
