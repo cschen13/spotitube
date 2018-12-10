@@ -11,6 +11,7 @@ class ConvertModal extends Component {
       loggedInYouTube: true,
       percentProgress: 0,
       open: false,
+      playlistUrl: undefined,
     }
   }
 
@@ -20,6 +21,9 @@ class ConvertModal extends Component {
       this.convertTracks()
       .then((res) => {
         this.setState({ converted: true });
+        res.json().then((playlistInfo) => {
+            this.setState({ playlistUrl: playlistInfo.URL });
+        });
       })
       .catch((err) => {
         // Catch YouTube login errors
@@ -79,6 +83,8 @@ class ConvertModal extends Component {
     const loggedInYouTube = this.state.loggedInYouTube;
     const percentProgress = this.state.percentProgress;
     const convertFailures = this.state.convertFailures;
+    const converted = this.state.converted;
+    const playlistUrl = this.state.playlistUrl;
 
     const content = loggedInYouTube ? (
       <div>
@@ -93,7 +99,12 @@ class ConvertModal extends Component {
             : null
           }
         </Progress>
-        <p>Converting {this.state.currentTrack}...</p>
+        
+        {
+            converted
+            ? <p>Your playlist has been converted! See it <a href={playlistUrl}>here</a>.</p>
+            : <p>Converting {this.state.currentTrack}...</p>
+        }
       </div>
     ) : (
       <p>To begin conversion, you must first <a href={(process.env.SPOTITUBE_HOST ? '' : 'http://localhost:8080') + '/login/youtube?returnURL=' + encodeURIComponent(window.location.pathname + window.location.search)}>login with Google/YouTube</a>.</p>
