@@ -19,8 +19,8 @@ type SessionManager struct {
 	store *redistore.RediStore
 }
 
-func NewSessionManager(address string, authKey []byte) *SessionManager {
-	store, err := redistore.NewRediStore(10, "tcp", address, "", authKey)
+func NewSessionManager(address, password string, authKey []byte) *SessionManager {
+	store, err := redistore.NewRediStore(10, "tcp", address, password, authKey)
 
 	if err != nil {
 		log.Printf("SessionManager: Error getting current user during session manager instantiation")

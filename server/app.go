@@ -18,10 +18,10 @@ type Server struct {
 	port string
 }
 
-func NewServer(host, port, redisUrl, sessionSecret string, userManagerKey int, devPort string) *Server {
+func NewServer(host, port, redisAddress, redisPassword, sessionSecret string, userManagerKey int, devPort string) *Server {
 	isDev := port != devPort
 	server := Server{negroni.Classic(), host, port}
-	sessionManager := utils.NewSessionManager(redisUrl, []byte(sessionSecret))
+	sessionManager := utils.NewSessionManager(redisAddress, redisPassword, []byte(sessionSecret))
 	// currentUser := utils.NewCurrentUserManager(userManagerKey)
 	// userContext := middleware.NewUserContext(currentUser, sessionManager)
 	// server.Use(userContext.Middleware())
