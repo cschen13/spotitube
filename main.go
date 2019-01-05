@@ -22,12 +22,12 @@ func main() {
 		sessionSecret = utils.GenerateRandStr(64)
 	}
 
-	redisUrl := os.Getenv("REDIS_URL")
-	if redisUrl == "" {
-		redisUrl = ":6379"
+	redisAddress := os.Getenv("REDIS_ADDRESS")
+	if redisAddress == "" {
+		redisAddress = ":6379"
 	}
 
-	s := server.NewServer(scheme+hostname, getPort(), redisUrl, sessionSecret, 1, devPort)
+	s := server.NewServer(scheme+hostname, getPort(), redisAddress, sessionSecret, 1, devPort)
 	s.Start()
 }
 
