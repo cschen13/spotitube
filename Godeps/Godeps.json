@@ -1,12 +1,22 @@
 {
 	"ImportPath": "github.com/cschen13/spotitube",
-	"GoVersion": "go1.8",
-	"GodepVersion": "v79",
+	"GoVersion": "go1.11",
+	"GodepVersion": "v80",
 	"Deps": [
 		{
 			"ImportPath": "cloud.google.com/go/compute/metadata",
 			"Comment": "v0.12.0-18-gadba27d",
 			"Rev": "adba27d07b6a034e8d2839a4ec5fecc11aa17b30"
+		},
+		{
+			"ImportPath": "github.com/garyburd/redigo/internal",
+			"Comment": "v1.6.0-3-g569eae5",
+			"Rev": "569eae59ada904ea8db7a225c2b47165af08735a"
+		},
+		{
+			"ImportPath": "github.com/garyburd/redigo/redis",
+			"Comment": "v1.6.0-3-g569eae5",
+			"Rev": "569eae59ada904ea8db7a225c2b47165af08735a"
 		},
 		{
 			"ImportPath": "github.com/gorilla/context",
@@ -80,6 +90,11 @@
 		{
 			"ImportPath": "google.golang.org/api/youtube/v3",
 			"Rev": "457a8f3b9fb96a68fa4ebfbeb5bf9992c06cf0a9"
+		},
+		{
+			"ImportPath": "gopkg.in/boj/redistore.v1",
+			"Comment": "v1.2",
+			"Rev": "fc113767cd6b051980f260d6dbe84b2740c46ab0"
 		}
 	]
 }
