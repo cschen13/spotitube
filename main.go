@@ -32,7 +32,7 @@ func main() {
 			panic(err)
 		}
 
-		redisURL = opt.Addr
+		redisAddress = opt.Addr
 		redisPassword = opt.Password
 	}
 
