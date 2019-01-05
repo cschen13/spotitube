@@ -67,8 +67,11 @@ func NewServer(host, port, redisAddress, redisPassword, sessionSecret string, us
 	} else {
 		log.Print("PRODUCTION BUILD")
 		// serve images, JS files, etc.
-		router.Path("/").Handler(http.FileServer(http.Dir("client/build")))
 		router.PathPrefix("/static/").Handler(http.FileServer(http.Dir("client/build")))
+
+		router.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.ServeFile(w, r, "client/build/index.html")
+		})
 	}
 
 	server.UseHandler(router)

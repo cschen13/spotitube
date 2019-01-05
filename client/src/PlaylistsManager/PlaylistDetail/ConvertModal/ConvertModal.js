@@ -107,7 +107,7 @@ class ConvertModal extends Component {
         }
       </div>
     ) : (
-      <p>To begin conversion, you must first <a href={(process.env.SPOTITUBE_HOST ? '' : 'http://localhost:8080') + '/login/youtube?returnURL=' + encodeURIComponent(window.location.pathname + window.location.search)}>login with Google/YouTube</a>.</p>
+      <p>To begin conversion, you must first <a href={(process.env.REACT_APP_SPOTITUBE_HOST ? '' : 'http://localhost:8080') + '/login/youtube?returnURL=' + encodeURIComponent(window.location.pathname + window.location.search)}>login with Google/YouTube</a>.</p>
     );
 
     return (
