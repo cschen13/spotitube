@@ -3,11 +3,9 @@ package utils
 import (
 	"log"
 	"net/http"
-	"os/user"
-	"path/filepath"
 
-	"github.com/gorilla/sessions"
 	"golang.org/x/oauth2"
+	redistore "gopkg.in/boj/redistore.v1"
 )
 
 const (
@@ -18,17 +16,17 @@ const (
 )
 
 type SessionManager struct {
-	store *sessions.FilesystemStore
+	store *redistore.RediStore
 }
 
-func NewSessionManager(authKey []byte) *SessionManager {
-	usr, err := user.Current()
+func NewSessionManager(address string, authKey []byte) *SessionManager {
+	store, err := redistore.NewRediStore(10, "tcp", address, "", authKey)
+
 	if err != nil {
 		log.Printf("SessionManager: Error getting current user during session manager instantiation")
-		return nil
+		panic(err)
 	}
 
-	store := sessions.NewFilesystemStore(filepath.Join(usr.HomeDir, SESSION_DIRECTORY_NAME), authKey)
 	return &SessionManager{store}
 }
 

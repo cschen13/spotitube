@@ -1,9 +1,10 @@
 package main
 
 import (
+	"os"
+
 	"github.com/cschen13/spotitube/server"
 	"github.com/cschen13/spotitube/utils"
-	"os"
 )
 
 func main() {
@@ -21,7 +22,12 @@ func main() {
 		sessionSecret = utils.GenerateRandStr(64)
 	}
 
-	s := server.NewServer(scheme+hostname, getPort(), sessionSecret, 1, devPort)
+	redisUrl := os.Getenv("REDIS_URL")
+	if redisUrl == "" {
+		redisUrl = ":6379"
+	}
+
+	s := server.NewServer(scheme+hostname, getPort(), redisUrl, sessionSecret, 1, devPort)
 	s.Start()
 }
 
