@@ -11,7 +11,7 @@ class PlaylistsManager extends Component {
           <Route exact path="/" render={() => 
             <Playlists
               playlists={this.props.playlists}
-              onClick={(p) => { this.setState({ selectedPlaylist: p }) }} />
+              onClick={(p) => { this.setState({ selectedPlaylist: p }); }} />
           } />
           <Route path="/:ownerId/:playlistId" component={PlaylistDetail} />
         </div>

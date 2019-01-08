@@ -12,7 +12,7 @@ class ConvertModal extends Component {
       percentProgress: 0,
       open: false,
       playlistUrl: undefined,
-    }
+    };
   }
 
   handleConvertClick() {
@@ -28,7 +28,7 @@ class ConvertModal extends Component {
       .catch((err) => {
         // Catch YouTube login errors
         console.error(err);
-      })
+      });
     }
     
     this.setState({open: true});
@@ -120,7 +120,7 @@ class ConvertModal extends Component {
           {content}
         </Modal.Content>
       </Modal>
-    )
+    );
   }
 }
 

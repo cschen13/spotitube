@@ -47,7 +47,7 @@ class App extends Component {
   }
 }
 
-function Greeting(props) {
+function Greeting() {
   return (
     <div>
       <p>
