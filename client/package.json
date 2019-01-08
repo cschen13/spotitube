@@ -28,6 +28,7 @@
     "not op_mini all"
   ],
   "devDependencies": {
+    "eslint-plugin-react": "^7.12.3",
     "tslint": "^5.12.0"
   }
 }
