@@ -1,8 +1,15 @@
 import React from 'react';
 import { Dimmer, Loader, Table } from 'semantic-ui-react';
 
-function Tracklist(props) {
-  if (props.tracks.length === 0) {
+interface ITrackListProps {
+  tracks: Array<{
+    title: string;
+    artist: string;
+  }>;
+}
+
+const Tracklist: React.FunctionComponent<ITrackListProps> = ({tracks}) => {
+  if (tracks.length === 0) {
     return (
       <Dimmer active inverted>
         <Loader inverted content='Loading Playlist (Long tracklists may take a while...)' />
@@ -21,11 +28,11 @@ function Tracklist(props) {
       </Table.Header>
 
       <Table.Body>
-        {props.tracks.map((track, index) => 
+        {tracks.map((track, index) => 
           <Table.Row>
             <Table.Cell collapsing>{index+1}</Table.Cell>
-            <Table.Cell collapsing>{track.Title}</Table.Cell>
-            <Table.Cell>{track.Artist}</Table.Cell>
+            <Table.Cell collapsing>{track.title}</Table.Cell>
+            <Table.Cell>{track.artist}</Table.Cell>
           </Table.Row>
         )}
       </Table.Body>

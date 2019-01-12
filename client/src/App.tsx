@@ -3,6 +3,11 @@ import './App.css';
 import { Header } from 'semantic-ui-react';
 import PlaylistsManager from './PlaylistsManager/PlaylistsManager';
 
+interface AppState {
+  loggedIn: boolean;
+  
+}
+
 class App extends Component {
   constructor(props) {
     super(props);

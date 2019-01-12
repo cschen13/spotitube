@@ -1,10 +1,30 @@
-import React, { Component } from 'react';
+import * as React from 'react';
 import { Header, Image } from 'semantic-ui-react';
 import noArtwork from '../../imgs/no-artwork.png';
 import ConvertModal from './ConvertModal/ConvertModal';
 import Tracklist from './Tracklist/Tracklist';
+import { RouteComponentProps } from 'react-router-dom';
 
-class PlaylistDetail extends Component {
+interface IPlaylistDetailState {
+  readonly hasGetError: boolean;
+  readonly playlist: {
+    name: string;
+    url: string;
+    coverUrl: string;
+  };
+  readonly tracks: Array<{
+    title: string;
+    artist: string;
+  }>;
+}
+
+interface IPlaylistDetailMatchProps {
+  ownerId: string;
+  playlistId: string;
+}
+
+type PlaylistDetailProps = RouteComponentProps<IPlaylistDetailMatchProps>;
+class PlaylistDetail extends React.Component<PlaylistDetailProps> {
   constructor(props) {
     super(props);
     this.state = {
