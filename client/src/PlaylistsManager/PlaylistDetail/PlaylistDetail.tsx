@@ -1,9 +1,9 @@
-import * as React from 'react';
-import { Header, Image } from 'semantic-ui-react';
-import noArtwork from '../../imgs/no-artwork.png';
-import ConvertModal from './ConvertModal/ConvertModal';
-import Tracklist from './Tracklist/Tracklist';
-import { RouteComponentProps } from 'react-router-dom';
+import * as React from "react";
+import { Header, Image } from "semantic-ui-react";
+import noArtwork from "../../imgs/no-artwork.png";
+import ConvertModal from "./ConvertModal/ConvertModal";
+import Tracklist from "./Tracklist/Tracklist";
+import { RouteComponentProps } from "react-router-dom";
 
 interface IPlaylistDetailState {
   readonly hasGetError: boolean;
@@ -24,17 +24,20 @@ interface IPlaylistDetailMatchProps {
 }
 
 type PlaylistDetailProps = RouteComponentProps<IPlaylistDetailMatchProps>;
-class PlaylistDetail extends React.Component<PlaylistDetailProps> {
+class PlaylistDetail extends React.Component<
+  PlaylistDetailProps,
+  IPlaylistDetailState
+> {
   constructor(props) {
     super(props);
     this.state = {
       hasGetError: false,
       playlist: {
-        name: '',
-        url: '#',
-        coverUrl: '',
+        name: "",
+        url: "#",
+        coverUrl: ""
       },
-      tracks: [],
+      tracks: []
     };
   }
 
@@ -43,35 +46,37 @@ class PlaylistDetail extends React.Component<PlaylistDetailProps> {
     const playlistId = this.props.match.params.playlistId;
 
     let headers = new Headers();
-    headers.append('Accept', 'application/json')
+    headers.append("Accept", "application/json");
     fetch(`/playlists/${ownerId}/${playlistId}`, {
-      credentials: 'include',
+      credentials: "include",
       headers: headers
     })
-    .then((res) => res.json())
-    .then((playlist) => {
-      console.log(playlist);
-      this.setState({
-        playlist: {
-          name: playlist.Name,
-          url: playlist.URL,
-          coverUrl: playlist.CoverURL,
-        },
-      });
+      .then(res => res.json())
+      .then(playlist => {
+        console.log(playlist);
+        this.setState({
+          playlist: {
+            name: playlist.Name,
+            url: playlist.URL,
+            coverUrl: playlist.CoverURL
+          }
+        });
 
-      return fetch(`/playlists/${ownerId}/${playlistId}/tracks`, {
-        credentials: 'include',
-        headers: headers
+        return fetch(`/playlists/${ownerId}/${playlistId}/tracks`, {
+          credentials: "include",
+          headers: headers
+        });
+      })
+      .then(res => res.json())
+      .then(tracks => {
+        this.setState({ tracks: tracks });
+      })
+      .catch(err => {
+        this.setState({
+          hasError: true
+        });
+        console.log("Request failed", err);
       });
-    })
-    .then((res) => res.json())
-    .then((tracks) => { this.setState({ tracks: tracks }); })
-    .catch((err) => {
-      this.setState({
-        hasError: true,
-      });
-      console.log('Request failed', err);
-    })
   }
 
   render() {
@@ -84,17 +89,19 @@ class PlaylistDetail extends React.Component<PlaylistDetailProps> {
     return (
       <div>
         <Header as="h2">{playlistName}</Header>
-        {this.state.hasGetError
-          ? <p>An error occurred retrieving some part of the playlist.</p>
-          : <div>
-              <Image src={coverUrl === '' ? noArtwork : coverUrl} size="medium" />
-              <ConvertModal
-                ownerId={ownerId}
-                playlistId={playlistId}
-                tracks={tracks} />
-              <Tracklist tracks={tracks} />
-            </div>
-        }
+        {this.state.hasGetError ? (
+          <p>An error occurred retrieving some part of the playlist.</p>
+        ) : (
+          <div>
+            <Image src={coverUrl === "" ? noArtwork : coverUrl} size="medium" />
+            <ConvertModal
+              ownerId={ownerId}
+              playlistId={playlistId}
+              tracks={tracks}
+            />
+            <Tracklist tracks={tracks} />
+          </div>
+        )}
       </div>
     );
   }
