@@ -1,13 +1,17 @@
 import React, { Component } from "react";
 import { Button, Modal, Progress } from "semantic-ui-react";
+import request, { IApiResponse } from "../../../services/HttpRequest";
+import trackService, { IPlaylist } from "../../../services/TrackService";
+
+interface ITrack {
+  title: string;
+  id: string;
+}
 
 interface IConvertModalProps {
   ownerId: string;
   playlistId: string;
-  tracks: Array<{
-    title: string;
-    id: string;
-  }>;
+  tracks: ITrack[];
 }
 
 interface IConvertModalState {
@@ -37,7 +41,7 @@ class ConvertModal extends React.Component<
     };
   }
 
-  handleConvertClick() {
+  public handleConvertClick() {
     const open = this.state.open;
     if (!open) {
       this.convertTracks()
@@ -56,52 +60,40 @@ class ConvertModal extends React.Component<
     this.setState({ open: true });
   }
 
-  convertTracks() {
+  public async convertTracks(): IPlaylist {
     const ownerId = this.props.ownerId;
     const playlistId = this.props.playlistId;
     const tracks = this.props.tracks;
 
-    let counter = 0;
-    return tracks.reduce((promise, track) => {
-      return promise
-        .then(res => {
-          if (res) return res.json();
-        })
-        .then(newPlaylist => {
-          console.log(`Converting ${track.title}`);
-          this.setState({ currentTrack: track.title });
-          let newPlaylistQuery = "";
-          if (newPlaylist) {
-            newPlaylistQuery = `?newPlaylistId=${newPlaylist.ID}`;
-          }
+    let newPlaylistId;
 
-          return fetch(
-            `/playlists/${ownerId}/${playlistId}/tracks/${
-              track.ID
-            }${newPlaylistQuery}`,
-            {
-              credentials: "include",
-              headers: { Accept: "application/json" },
-              method: "POST"
-            }
-          ).then(res => {
-            this.handleConvertErrors(res, track);
-            this.setState({
-              percentProgress: (++counter / tracks.length) * 100
-            });
-            return res;
-          });
+    try {
+      tracks.map(async (track, idx) => {
+        const response = await trackService.convert(
+          ownerId,
+          playlistId,
+          track.id,
+          newPlaylistId
+        );
+        this.handleConvertErrors(response, track);
+        this.setState({
+          percentProgress: ((idx + 1) / tracks.length) * 100
         });
-    }, Promise.resolve());
+      });
+    } catch (err) {
+      this.setState({ loggedInYouTube: false });
+    }
   }
 
-  handleConvertErrors(response, track) {
-    if (!response.ok) {
+  private handleConvertErrors<T>(
+    response: IApiResponse<IPlaylist>,
+    track: ITrack
+  ) {
+    if (response.status !== 200) {
       if (response.status === 401) {
-        this.setState({ loggedInYouTube: false });
-        throw new Error(response.statusText);
+        throw new Error(response);
       } else {
-        console.error(`Failed to convert ${track.Title}`);
+        console.error(`Failed to convert ${track.title}`);
         this.setState({
           convertFailures: [...this.state.convertFailures, track]
         });
@@ -111,7 +103,7 @@ class ConvertModal extends React.Component<
     return response;
   }
 
-  render() {
+  public render() {
     const loggedInYouTube = this.state.loggedInYouTube;
     const percentProgress = this.state.percentProgress;
     const convertFailures = this.state.convertFailures;

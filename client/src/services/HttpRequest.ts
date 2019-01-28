@@ -1,7 +1,7 @@
 const message =
   "An error occurred while fetching data from the server. Please try again later.";
 
-interface IApiResponse<T> {
+export interface IApiResponse<T> {
   status: number;
   value?: T;
   error?: {
@@ -31,7 +31,7 @@ export default async function request<T>(
 ): Promise<IApiResponse<T>> {
   const options: RequestInit = {
     body,
-    headers: new Headers({ ...headers, "content-type": "application/json" }),
+    headers: new Headers({ "content-type": "application/json", ...headers }),
     method
   };
 
