@@ -8,7 +8,7 @@ export interface ITrack {
 }
 
 class TrackService {
-  public async convert(
+  public async convertTrack(
     ownerId: string,
     playlistId: string,
     trackId: string,

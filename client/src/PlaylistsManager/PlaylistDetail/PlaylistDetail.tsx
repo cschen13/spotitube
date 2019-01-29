@@ -1,21 +1,17 @@
 import * as React from "react";
+import { RouteComponentProps } from "react-router-dom";
 import { Header, Image } from "semantic-ui-react";
+// @ts-ignore: https://github.com/Microsoft/TypeScript/issues/15146
 import noArtwork from "../../imgs/no-artwork.png";
+import playlistService, { IPlaylist } from "../../services/PlaylistService";
+import { ITrack } from "../../services/TrackService";
 import ConvertModal from "./ConvertModal/ConvertModal";
 import Tracklist from "./Tracklist/Tracklist";
-import { RouteComponentProps } from "react-router-dom";
 
 interface IPlaylistDetailState {
   readonly hasGetError: boolean;
-  readonly playlist: {
-    name: string;
-    url: string;
-    coverUrl: string;
-  };
-  readonly tracks: Array<{
-    title: string;
-    artist: string;
-  }>;
+  readonly playlist?: IPlaylist;
+  readonly tracks?: ITrack[];
 }
 
 interface IPlaylistDetailMatchProps {
@@ -28,61 +24,43 @@ class PlaylistDetail extends React.Component<
   PlaylistDetailProps,
   IPlaylistDetailState
 > {
-  constructor(props) {
+  constructor(props: PlaylistDetailProps) {
     super(props);
     this.state = {
       hasGetError: false,
-      playlist: {
-        name: "",
-        url: "#",
-        coverUrl: ""
-      },
-      tracks: []
+      playlist: undefined,
+      tracks: undefined
     };
   }
 
-  componentDidMount() {
+  public async componentDidMount() {
     const ownerId = this.props.match.params.ownerId;
     const playlistId = this.props.match.params.playlistId;
 
-    let headers = new Headers();
-    headers.append("Accept", "application/json");
-    fetch(`/playlists/${ownerId}/${playlistId}`, {
-      credentials: "include",
-      headers: headers
-    })
-      .then(res => res.json())
-      .then(playlist => {
-        console.log(playlist);
-        this.setState({
-          playlist: {
-            name: playlist.Name,
-            url: playlist.URL,
-            coverUrl: playlist.CoverURL
-          }
-        });
+    const [detailsResponse, tracksResponse] = await Promise.all([
+      playlistService.getPlaylistDetails(ownerId, playlistId),
+      playlistService.getPlaylistTracks(ownerId, playlistId)
+    ]);
 
-        return fetch(`/playlists/${ownerId}/${playlistId}/tracks`, {
-          credentials: "include",
-          headers: headers
-        });
-      })
-      .then(res => res.json())
-      .then(tracks => {
-        this.setState({ tracks: tracks });
-      })
-      .catch(err => {
-        this.setState({
-          hasError: true
-        });
-        console.log("Request failed", err);
+    if (detailsResponse.error || tracksResponse.error) {
+      this.setState({ hasGetError: true });
+    } else {
+      this.setState({
+        playlist: detailsResponse.value,
+        tracks: tracksResponse.value
       });
+    }
   }
 
-  render() {
-    const playlistName = this.state.playlist.name;
-    const coverUrl = this.state.playlist.coverUrl;
+  public render() {
+    const playlist = this.state.playlist;
     const tracks = this.state.tracks;
+    if (typeof playlist === "undefined" || typeof tracks === "undefined") {
+      return null;
+    }
+
+    const playlistName = playlist.name;
+    const coverUrl = playlist.coverUrl;
     const ownerId = this.props.match.params.ownerId;
     const playlistId = this.props.match.params.playlistId;
 
