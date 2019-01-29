@@ -1,12 +1,8 @@
-import React, { Component } from "react";
+import * as React from "react";
 import { Button, Modal, Progress } from "semantic-ui-react";
-import request, { IApiResponse } from "../../../services/HttpRequest";
-import trackService, { IPlaylist } from "../../../services/TrackService";
-
-interface ITrack {
-  title: string;
-  id: string;
-}
+import { IApiResponse } from "../../../services/HttpRequest";
+import { IPlaylist } from "../../../services/PlaylistService";
+import trackService, { ITrack } from "../../../services/TrackService";
 
 interface IConvertModalProps {
   ownerId: string;
@@ -15,23 +11,21 @@ interface IConvertModalProps {
 }
 
 interface IConvertModalState {
-  converted: boolean;
   convertFailures: Array<{}>;
   currentTrackTitle: string;
   loggedInYouTube: boolean;
   percentProgress: number;
   open: boolean;
-  playlistUrl: string;
+  playlistUrl?: string;
 }
 
 class ConvertModal extends React.Component<
   IConvertModalProps,
   IConvertModalState
 > {
-  constructor(props) {
+  constructor(props: Readonly<IConvertModalProps>) {
     super(props);
     this.state = {
-      converted: false,
       convertFailures: [],
       currentTrackTitle: "",
       loggedInYouTube: true,
@@ -41,73 +35,10 @@ class ConvertModal extends React.Component<
     };
   }
 
-  public handleConvertClick() {
-    const open = this.state.open;
-    if (!open) {
-      this.convertTracks()
-        .then(res => {
-          this.setState({ converted: true });
-          res.json().then(playlistInfo => {
-            this.setState({ playlistUrl: playlistInfo.URL });
-          });
-        })
-        .catch(err => {
-          // Catch YouTube login errors
-          console.error(err);
-        });
-    }
-
-    this.setState({ open: true });
-  }
-
-  public async convertTracks(): IPlaylist {
-    const ownerId = this.props.ownerId;
-    const playlistId = this.props.playlistId;
-    const tracks = this.props.tracks;
-
-    let newPlaylistId;
-
-    try {
-      tracks.map(async (track, idx) => {
-        const response = await trackService.convert(
-          ownerId,
-          playlistId,
-          track.id,
-          newPlaylistId
-        );
-        this.handleConvertErrors(response, track);
-        this.setState({
-          percentProgress: ((idx + 1) / tracks.length) * 100
-        });
-      });
-    } catch (err) {
-      this.setState({ loggedInYouTube: false });
-    }
-  }
-
-  private handleConvertErrors<T>(
-    response: IApiResponse<IPlaylist>,
-    track: ITrack
-  ) {
-    if (response.status !== 200) {
-      if (response.status === 401) {
-        throw new Error(response);
-      } else {
-        console.error(`Failed to convert ${track.title}`);
-        this.setState({
-          convertFailures: [...this.state.convertFailures, track]
-        });
-      }
-    }
-
-    return response;
-  }
-
   public render() {
     const loggedInYouTube = this.state.loggedInYouTube;
     const percentProgress = this.state.percentProgress;
     const convertFailures = this.state.convertFailures;
-    const converted = this.state.converted;
     const playlistUrl = this.state.playlistUrl;
 
     const content = loggedInYouTube ? (
@@ -123,7 +54,7 @@ class ConvertModal extends React.Component<
           ) : null}
         </Progress>
 
-        {converted ? (
+        {playlistUrl !== "" ? (
           <p>
             Your playlist has been converted! See it{" "}
             <a href={playlistUrl}>here</a>.
@@ -162,6 +93,68 @@ class ConvertModal extends React.Component<
         <Modal.Content>{content}</Modal.Content>
       </Modal>
     );
+  }
+
+  public async handleConvertClick() {
+    const open = this.state.open;
+    if (!open) {
+      try {
+        const newPlaylist = await this.convertTracks();
+        this.setState({ playlistUrl: newPlaylist.url });
+      } catch (err) {
+        this.setState({ loggedInYouTube: false });
+      }
+    }
+
+    this.setState({ open: true });
+  }
+
+  public async convertTracks(): Promise<IPlaylist> {
+    const ownerId = this.props.ownerId;
+    const playlistId = this.props.playlistId;
+    const tracks = this.props.tracks;
+
+    let newPlaylist = {} as IPlaylist;
+    tracks.map(async (track, idx) => {
+      const response = await trackService.convert(
+        ownerId,
+        playlistId,
+        track.id,
+        newPlaylist.id
+      );
+
+      this.handleConvertErrors(response, track);
+      if (typeof response.value !== "undefined") {
+        newPlaylist = response.value;
+      }
+
+      this.setState({
+        percentProgress: ((idx + 1) / tracks.length) * 100
+      });
+    });
+
+    return newPlaylist;
+  }
+
+  private handleConvertErrors<T>(
+    response: IApiResponse<IPlaylist>,
+    track: ITrack
+  ) {
+    if (response.status !== 200) {
+      if (response.status === 401) {
+        throw new Error("Not logged into YouTube.");
+      } else {
+        console.error(
+          `Failed to convert ${track.title}`,
+          response.error && response.error.message
+        );
+        this.setState({
+          convertFailures: [...this.state.convertFailures, track]
+        });
+      }
+    }
+
+    return response;
   }
 }
 

@@ -1,6 +1,9 @@
 import request, { IApiResponse } from "./HttpRequest";
+import { IPlaylist } from "./PlaylistService";
 
-export interface IPlaylist {
+export interface ITrack {
+  artist: string;
+  title: string;
   id: string;
 }
 
