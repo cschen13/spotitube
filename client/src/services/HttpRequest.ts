@@ -11,9 +11,16 @@ export interface IApiResponse<T> {
 
 async function parse<T>(response: Response): Promise<IApiResponse<T>> {
   const result = { status: response.status } as IApiResponse<T>;
+
   try {
-    const data = await response.json();
-    result.value = data;
+    if (response.ok) {
+      const data = await response.json();
+      result.value = data;
+    } else {
+      const errorText = await response.text();
+      console.error(errorText);
+      result.error = { message: errorText };
+    }
   } catch (err) {
     console.error(err);
     result.error = { message };

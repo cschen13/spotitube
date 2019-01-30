@@ -1,44 +1,54 @@
-import React, { Component } from 'react';
-import './App.css';
-import { Header } from 'semantic-ui-react';
-import PlaylistsManager from './PlaylistsManager/PlaylistsManager';
+import * as React from "react";
+import { Header } from "semantic-ui-react";
+import "./App.css";
+import PlaylistsManager from "./PlaylistsManager/PlaylistsManager";
+import playlistService, { IPlaylist } from "./services/PlaylistService";
 
-interface AppState {
+interface IAppState {
   loggedIn: boolean;
-  
+  playlists?: IPlaylist[];
+  hasGetError: boolean;
 }
 
-class App extends Component {
-  constructor(props) {
+class App extends React.Component<{}, IAppState> {
+  private loginUrl =
+    (process.env.REACT_APP_SPOTITUBE_HOST ? "" : "http://localhost:8080") +
+    "/login/spotify?returnURL=" +
+    encodeURIComponent(window.location.pathname + window.location.search);
+
+  constructor(props: Readonly<{}>) {
     super(props);
     this.state = {
+      hasGetError: false,
       loggedIn: false,
-      playlists: [],
+      playlists: undefined
     };
   }
 
-  componentDidMount() {
-    fetch('/playlists', {
-      credentials: 'include',
-    })
-    .then((response) => {
-      // console.log(response);
-      this.setState({ loggedIn: response.ok });
-      if (response.ok) {
-        response.json().then((playlists) => {
-          console.log(playlists);
-          this.setState({ playlists: playlists });
-        });
-      }
+  public async componentDidMount() {
+    const response = await playlistService.getCurrentUserPlaylists();
+    const hasGetError = response.status !== 200 && response.status !== 401;
+    this.setState({
+      hasGetError,
+      loggedIn: response.status !== 401,
+      playlists: response.value
     });
   }
 
-  render() {
+  public render() {
+    const { hasGetError, loggedIn, playlists } = this.state;
+
     let landing;
-    if (this.state.loggedIn) {
-      landing = <PlaylistsManager playlists={this.state.playlists} />;
+    if (hasGetError) {
+      landing = (
+        <p>
+          An error occurred while retrieving your playlists. Try again later.
+        </p>
+      );
+    } else if (loggedIn && playlists) {
+      landing = <PlaylistsManager playlists={playlists} />;
     } else {
-      landing = <Greeting />;
+      landing = <Greeting loginUrl={this.loginUrl} />;
     }
 
     return (
@@ -52,19 +62,19 @@ class App extends Component {
   }
 }
 
-function Greeting() {
+interface IGreetingProps {
+  loginUrl: string;
+}
+
+const Greeting: React.FunctionComponent<IGreetingProps> = ({ loginUrl }) => {
   return (
     <div>
+      <p>Convert your Spotify playlists to YouTube music video playlists.</p>
       <p>
-        Convert your Spotify playlists to YouTube music video playlists.
-      </p>
-      <p>
-        <a href={(process.env.REACT_APP_SPOTITUBE_HOST ? '' : 'http://localhost:8080') + '/login/spotify?returnURL=' + encodeURIComponent(window.location.pathname + window.location.search)}>
-          Login with Spotify
-        </a> to get started.
+        <a href={loginUrl}>Login with Spotify</a> to get started.
       </p>
     </div>
   );
-}
+};
 
 export default App;

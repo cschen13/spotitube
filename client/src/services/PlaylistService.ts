@@ -10,6 +10,10 @@ export interface IPlaylist {
 }
 
 class PlaylistService {
+  public async getCurrentUserPlaylists(): Promise<IApiResponse<IPlaylist[]>> {
+    return await request("/playlists", true);
+  }
+
   public async getPlaylistDetails(
     ownerId: string,
     playlistId: string

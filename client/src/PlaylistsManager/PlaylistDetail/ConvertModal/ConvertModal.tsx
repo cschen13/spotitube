@@ -116,7 +116,7 @@ class ConvertModal extends React.Component<
 
     let newPlaylist = {} as IPlaylist;
     tracks.map(async (track, idx) => {
-      const response = await trackService.convert(
+      const response = await trackService.convertTrack(
         ownerId,
         playlistId,
         track.id,

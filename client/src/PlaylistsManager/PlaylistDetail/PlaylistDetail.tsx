@@ -8,6 +8,7 @@ import { ITrack } from "../../services/TrackService";
 import ConvertModal from "./ConvertModal/ConvertModal";
 import Tracklist from "./Tracklist/Tracklist";
 
+// TODO: Pass playlist details as props instead of using API to set state
 interface IPlaylistDetailState {
   readonly hasGetError: boolean;
   readonly playlist?: IPlaylist;
@@ -28,7 +29,10 @@ class PlaylistDetail extends React.Component<
     super(props);
     this.state = {
       hasGetError: false,
-      playlist: undefined,
+      playlist: {
+        coverUrl: "",
+        name: ""
+      } as IPlaylist,
       tracks: undefined
     };
   }
@@ -55,7 +59,7 @@ class PlaylistDetail extends React.Component<
   public render() {
     const playlist = this.state.playlist;
     const tracks = this.state.tracks;
-    if (typeof playlist === "undefined" || typeof tracks === "undefined") {
+    if (typeof playlist === "undefined") {
       return null;
     }
 
@@ -72,11 +76,13 @@ class PlaylistDetail extends React.Component<
         ) : (
           <div>
             <Image src={coverUrl === "" ? noArtwork : coverUrl} size="medium" />
-            <ConvertModal
-              ownerId={ownerId}
-              playlistId={playlistId}
-              tracks={tracks}
-            />
+            {typeof tracks !== "undefined" && (
+              <ConvertModal
+                ownerId={ownerId}
+                playlistId={playlistId}
+                tracks={tracks}
+              />
+            )}
             <Tracklist tracks={tracks} />
           </div>
         )}
