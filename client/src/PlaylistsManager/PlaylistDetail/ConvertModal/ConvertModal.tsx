@@ -3,11 +3,14 @@ import { Button, Modal, Progress } from "semantic-ui-react";
 import { IApiResponse } from "../../../services/HttpRequest";
 import { IPlaylist } from "../../../services/PlaylistService";
 import trackService, { ITrack } from "../../../services/TrackService";
+import { History } from "history";
 
 interface IConvertModalProps {
   ownerId: string;
   playlistId: string;
   tracks: ITrack[];
+  beginConverting: boolean;
+  history: History<any>;
 }
 
 interface IConvertModalState {
@@ -17,6 +20,7 @@ interface IConvertModalState {
   percentProgress: number;
   open: boolean;
   playlistUrl?: string;
+  attemptedConversion: boolean;
 }
 
 class ConvertModal extends React.Component<
@@ -26,19 +30,27 @@ class ConvertModal extends React.Component<
   constructor(props: Readonly<IConvertModalProps>) {
     super(props);
     this.state = {
+      attemptedConversion: false,
       convertFailures: [],
       currentTrackTitle: "",
       loggedInYouTube: true,
+      open: props.beginConverting,
       percentProgress: 0,
-      open: false,
       playlistUrl: undefined
     };
+  }
+
+  public async componentDidMount() {
+    if (this.props.beginConverting) {
+      await this.attemptConvert();
+    }
   }
 
   public render() {
     const loggedInYouTube = this.state.loggedInYouTube;
     const percentProgress = this.state.percentProgress;
     const convertFailures = this.state.convertFailures;
+    const open = this.state.open;
     const playlistUrl = this.state.playlistUrl;
 
     const content = loggedInYouTube ? (
@@ -54,7 +66,7 @@ class ConvertModal extends React.Component<
           ) : null}
         </Progress>
 
-        {playlistUrl !== "" ? (
+        {typeof playlistUrl !== "undefined" ? (
           <p>
             Your playlist has been converted! See it{" "}
             <a href={playlistUrl}>here</a>.
@@ -84,20 +96,35 @@ class ConvertModal extends React.Component<
     );
 
     return (
-      <Modal
-        closeOnRootNodeClick={false}
-        trigger={<Button primary>Convert to YouTube</Button>}
-        onOpen={() => this.handleConvertClick()}
-      >
-        <Modal.Header>Convert Playlist to YouTube</Modal.Header>
-        <Modal.Content>{content}</Modal.Content>
-      </Modal>
+      <div>
+        <Button
+          onClick={async () => {
+            this.setState({ open: true });
+            await this.attemptConvert();
+          }}
+          primary
+        >
+          Convert to YouTube
+        </Button>
+
+        <Modal
+          onClose={() => {
+            this.setState({ open: false });
+          }}
+          open={open}
+        >
+          <Modal.Header>Convert Playlist to YouTube</Modal.Header>
+          <Modal.Content>{content}</Modal.Content>
+        </Modal>
+      </div>
     );
   }
 
-  public async handleConvertClick() {
-    const open = this.state.open;
-    if (!open) {
+  private async attemptConvert() {
+    const attemptedConversion = this.state.attemptedConversion;
+    if (!attemptedConversion) {
+      this.props.history.push("?convert=true");
+
       try {
         const newPlaylist = await this.convertTracks();
         this.setState({ playlistUrl: newPlaylist.url });
@@ -106,16 +133,21 @@ class ConvertModal extends React.Component<
       }
     }
 
-    this.setState({ open: true });
+    this.setState({ attemptedConversion: true });
   }
 
-  public async convertTracks(): Promise<IPlaylist> {
+  private async convertTracks(): Promise<IPlaylist> {
     const ownerId = this.props.ownerId;
     const playlistId = this.props.playlistId;
     const tracks = this.props.tracks;
 
     let newPlaylist = {} as IPlaylist;
-    tracks.map(async (track, idx) => {
+    for (let i = 0; i < tracks.length; i++) {
+      const track = tracks[i];
+      this.setState({
+        currentTrackTitle: track.title
+      });
+
       const response = await trackService.convertTrack(
         ownerId,
         playlistId,
@@ -129,9 +161,9 @@ class ConvertModal extends React.Component<
       }
 
       this.setState({
-        percentProgress: ((idx + 1) / tracks.length) * 100
+        percentProgress: ((i + 1) / tracks.length) * 100
       });
-    });
+    }
 
     return newPlaylist;
   }

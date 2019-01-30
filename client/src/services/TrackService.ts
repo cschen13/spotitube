@@ -19,8 +19,7 @@ class TrackService {
       : "";
 
     return await request(
-      `/playlists/${ownerId}/${playlistId}/tracks/${trackId}
-      }${newPlaylistQuery}`,
+      `/playlists/${ownerId}/${playlistId}/tracks/${trackId}${newPlaylistQuery}`,
       true,
       "POST"
     );

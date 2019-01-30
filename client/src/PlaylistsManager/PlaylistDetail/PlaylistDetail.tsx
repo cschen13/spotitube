@@ -7,6 +7,7 @@ import playlistService, { IPlaylist } from "../../services/PlaylistService";
 import { ITrack } from "../../services/TrackService";
 import ConvertModal from "./ConvertModal/ConvertModal";
 import Tracklist from "./Tracklist/Tracklist";
+import { parse } from "query-string";
 
 // TODO: Pass playlist details as props instead of using API to set state
 interface IPlaylistDetailState {
@@ -68,6 +69,10 @@ class PlaylistDetail extends React.Component<
     const ownerId = this.props.match.params.ownerId;
     const playlistId = this.props.match.params.playlistId;
 
+    const history = this.props.history;
+    const beginConverting =
+      parse(this.props.location.search).convert === "true";
+
     return (
       <div>
         <Header as="h2">{playlistName}</Header>
@@ -81,6 +86,8 @@ class PlaylistDetail extends React.Component<
                 ownerId={ownerId}
                 playlistId={playlistId}
                 tracks={tracks}
+                beginConverting={beginConverting}
+                history={history}
               />
             )}
             <Tracklist tracks={tracks} />
