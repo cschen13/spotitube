@@ -9,11 +9,11 @@ type ClientPlaylist interface {
 }
 
 type Playlist struct {
-	ID       string
-	OwnerID  string
-	Name     string
-	URL      string
-	CoverURL string
+	ID       string `json:"id"`
+	OwnerID  string `json:"ownerId"`
+	Name     string `json:"name"`
+	URL      string `json:"url"`
+	CoverURL string `json:"coverUrl"`
 }
 
 func NewPlaylist(playlist ClientPlaylist) *Playlist {

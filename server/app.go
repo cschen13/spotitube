@@ -58,7 +58,7 @@ func NewServer(host, port, redisAddress, redisPassword, sessionSecret string, us
 			if acceptsJson := r.Header.Get("Accept") == "application/json"; acceptsJson {
 				http.Error(w, "The requested resource does not exist.", http.StatusNotFound)
 			} else {
-				http.Redirect(w, r, host+devPort+r.URL.Path, http.StatusFound)
+				http.Redirect(w, r, host+devPort+r.URL.String(), http.StatusFound)
 			}
 		})
 		// router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

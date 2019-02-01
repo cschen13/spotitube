@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 
 	"github.com/cschen13/spotitube/models"
 	"github.com/cschen13/spotitube/utils"
@@ -31,8 +32,16 @@ func (ctrl *AuthController) Register(router *mux.Router) {
 }
 
 func (ctrl *AuthController) initiateAuth(w http.ResponseWriter, r *http.Request) error {
-	if returnURL := r.FormValue("returnURL"); returnURL != "" {
-		ctrl.sessionManager.SetRedirect(r, w, returnURL)
+	queryParams := r.URL.Query()
+	if returnURLParam := queryParams.Get("returnURL"); returnURLParam != "" {
+		returnURL, err := url.Parse(returnURLParam)
+		if err != nil {
+			log.Printf("initiateAuth: error parsing returnURLParam - %s", err.Error())
+		} else {
+			queryParams.Del("returnURL")
+			returnURL.RawQuery = queryParams.Encode()
+			ctrl.sessionManager.SetRedirect(r, w, returnURL.String())
+		}
 	}
 
 	service := mux.Vars(r)[SERVICE_PARAM]
@@ -101,6 +110,7 @@ func (ctrl *AuthController) completeAuth(w http.ResponseWriter, r *http.Request)
 
 	redirectTo := "/"
 	if returnURL, err := ctrl.sessionManager.GetRedirect(r); returnURL != "" && err == nil {
+		log.Print(returnURL)
 		ctrl.sessionManager.DeleteRedirect(r, w)
 		redirectTo = returnURL
 	}

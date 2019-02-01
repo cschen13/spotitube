@@ -44,6 +44,13 @@ func (ctrl *PlaylistController) getPlaylists(w http.ResponseWriter, r *http.Requ
 	tok, err := ctrl.sessionManager.GetToken(r, clientType)
 	if err != nil {
 		return utils.StatusError{
+			Code: http.StatusInternalServerError,
+			Err:  fmt.Errorf("getPlaylists: error occurred getting %s client from session storage", clientType),
+		}
+	}
+
+	if tok == nil {
+		return utils.StatusError{
 			Code: http.StatusUnauthorized,
 			Err:  fmt.Errorf("getPlaylists: no %s client found", clientType),
 		}
@@ -52,8 +59,8 @@ func (ctrl *PlaylistController) getPlaylists(w http.ResponseWriter, r *http.Requ
 	c, err := ctrl.auths[clientType].NewClient(tok)
 	if err != nil {
 		return utils.StatusError{
-			Code: http.StatusUnauthorized,
-			Err:  fmt.Errorf("getPlaylists: no %s client found", clientType),
+			Code: http.StatusInternalServerError,
+			Err:  fmt.Errorf("getPlaylists: error occurred while creating %s client", clientType),
 		}
 	}
 

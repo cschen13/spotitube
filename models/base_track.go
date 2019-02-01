@@ -7,9 +7,9 @@ type ClientTrack interface {
 }
 
 type Track struct {
-	ID     string
-	Title  string
-	Artist string
+	ID     string `json:"id"`
+	Title  string `json:"title"`
+	Artist string `json:"artist"`
 }
 
 func NewTrack(track ClientTrack) *Track {
