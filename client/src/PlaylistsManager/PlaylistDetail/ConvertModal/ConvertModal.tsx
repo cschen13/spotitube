@@ -84,9 +84,8 @@ class ConvertModal extends React.Component<
               ? ""
               : "http://localhost:8080") +
             "/login/youtube?returnURL=" +
-            encodeURIComponent(
-              window.location.pathname + window.location.search
-            )
+            encodeURIComponent(window.location.pathname) +
+            window.location.search.replace("?", "&")
           }
         >
           login with Google/YouTube

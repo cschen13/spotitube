@@ -14,7 +14,8 @@ class App extends React.Component<{}, IAppState> {
   private loginUrl =
     (process.env.REACT_APP_SPOTITUBE_HOST ? "" : "http://localhost:8080") +
     "/login/spotify?returnURL=" +
-    encodeURIComponent(window.location.pathname + window.location.search);
+    encodeURIComponent(window.location.pathname) +
+    window.location.search.replace("?", "&");
 
   constructor(props: Readonly<{}>) {
     super(props);
