@@ -6,7 +6,7 @@ The API server is written in Go, using [`gorilla/mux`](https://github.com/gorill
 
 ## Local development environment setup
 
-This guide assumes that you have [Redis](https://redis.io/topics/quickstart) installed locally and your [Go development environment](https://golang.org/doc/install) properly setup. Running the app locally requires both Spotify and YouTube API access. You will also need to have Redis installed.
+This guide assumes that you have [Redis](https://redis.io/topics/quickstart) installed locally and your [Go development environment](https://golang.org/doc/install) properly setup. Running the app also requires both Spotify and YouTube API access.
 
 ### Source code
 
