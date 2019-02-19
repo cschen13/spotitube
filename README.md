@@ -22,14 +22,14 @@ This project manages dependencies with [Godep](https://github.com/tools/godep). 
 
 1. Sign in to the [Spotify developers dashboard](https://developer.spotify.com/dashboard) with your Spotify account.
 2. Create a new app and add the Client ID and Client Secret to your environment with variable names SPOTIFY_ID and SPOTIFY_SECRET, respectively.
-3. Add `http://localhost:8081/callback/spotify` to the list of Redirect URIs for your Spotify app.
+3. Add `http://localhost:8080/callback/spotify` to the list of Redirect URIs for your Spotify app.
 
 ### YouTube credentials
 
 1. Sign in to the [Google Developers Console](https://console.developers.google.com/) with your Google account.
 2. Create a new project and enable the YouTube Data API v3.
 3. Navigate to the Credentials page and create a new OAuth client ID.
-4. Add `http://localhost:8081/callback/youtube` to the list of Authorized redirect URIs.
+4. Add `http://localhost:8080/callback/youtube` to the list of Authorized redirect URIs.
 5. Download the JSON secret file, then save the value as an environment variable named YOUTUBE_SECRET.
 
 ### Running the app
@@ -65,7 +65,9 @@ To allow live reloading of our server when we make changes, install [codegangsta
 go get github.com/codegangsta/gin
 ```
 
-Then, when it comes time to run the Go server, instead of running `go build` and whatnot, you can run:
+Then, add `http://localhost:8081/callback/spotify` and `http://localhost:8081/callback/youtube` to the list of redirect URIs for the Spotify and YouTube APIs, respectively.
+
+Finally, when it comes time to run the Go server, instead of running `go build` and whatnot, you can run:
 
 ```
 gin -p 8080 -a 8081 ./spotitube
