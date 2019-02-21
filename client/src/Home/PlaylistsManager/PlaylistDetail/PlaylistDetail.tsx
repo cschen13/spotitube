@@ -1,13 +1,13 @@
+import { parse } from "query-string";
 import * as React from "react";
 import { RouteComponentProps } from "react-router-dom";
 import { Header, Image } from "semantic-ui-react";
 // @ts-ignore: https://github.com/Microsoft/TypeScript/issues/15146
-import noArtwork from "../../imgs/no-artwork.png";
-import playlistService, { IPlaylist } from "../../services/PlaylistService";
-import { ITrack } from "../../services/TrackService";
+import noArtwork from "../../../imgs/no-artwork.png";
+import playlistService, { IPlaylist } from "../../../services/PlaylistService";
+import { ITrack } from "../../../services/TrackService";
 import ConvertModal from "./ConvertModal/ConvertModal";
 import Tracklist from "./Tracklist/Tracklist";
-import { parse } from "query-string";
 
 // TODO: Pass playlist details as props instead of using API to set state
 interface IPlaylistDetailState {

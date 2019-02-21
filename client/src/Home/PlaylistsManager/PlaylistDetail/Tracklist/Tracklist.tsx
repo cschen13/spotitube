@@ -1,6 +1,6 @@
 import React from "react";
 import { Dimmer, Loader, Table } from "semantic-ui-react";
-import { ITrack } from "../../../services/TrackService";
+import { ITrack } from "../../../../services/TrackService";
 
 interface ITrackListProps {
   tracks?: ITrack[];

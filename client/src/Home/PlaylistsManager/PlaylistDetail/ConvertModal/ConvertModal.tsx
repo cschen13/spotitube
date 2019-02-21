@@ -1,9 +1,9 @@
+import { History } from "history";
 import * as React from "react";
 import { Button, Modal, Progress } from "semantic-ui-react";
-import { IApiResponse } from "../../../services/HttpRequest";
-import { IPlaylist } from "../../../services/PlaylistService";
-import trackService, { ITrack } from "../../../services/TrackService";
-import { History } from "history";
+import { IApiResponse } from "../../../../services/HttpRequest";
+import { IPlaylist } from "../../../../services/PlaylistService";
+import trackService, { ITrack } from "../../../../services/TrackService";
 
 interface IConvertModalProps {
   ownerId: string;
