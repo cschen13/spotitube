@@ -5,7 +5,7 @@ import Home from "./Home/Home";
 class App extends React.Component {
   public render() {
     return (
-      <div className="ui main container">
+      <div className="ui container">
         <Home />
       </div>
     );

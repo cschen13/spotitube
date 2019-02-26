@@ -1,5 +1,6 @@
 import * as React from "react";
-import { Header } from "semantic-ui-react";
+import { Logo } from "./Logo";
+import styled from "styled-components";
 
 interface IGreetingProps {
   loginUrl: string;
@@ -9,7 +10,7 @@ const Greeting: React.FunctionComponent<IGreetingProps> = ({ loginUrl }) => {
   return (
     <div>
       <header>
-        <Header as="h1">Playlist Exchange</Header>
+        <BigLogo />
       </header>
       <p>Convert your Spotify playlists to YouTube music video playlists.</p>
       <p>
@@ -18,5 +19,9 @@ const Greeting: React.FunctionComponent<IGreetingProps> = ({ loginUrl }) => {
     </div>
   );
 };
+
+const BigLogo = styled(Logo)`
+  font-size: 6.5em;
+`;
 
 export default Greeting;

@@ -3,6 +3,8 @@ import { Header } from "semantic-ui-react";
 import playlistService, { IPlaylist } from "../services/PlaylistService";
 import Greeting from "./Greeting";
 import PlaylistsManager from "./PlaylistsManager/PlaylistsManager";
+import { LogoCondensed } from "./Logo";
+import styled from "styled-components";
 
 interface IHomeState {
   loggedIn: boolean;
@@ -42,7 +44,7 @@ class Home extends React.Component<{}, IHomeState> {
     return loggedIn && playlists ? (
       <div>
         <header>
-          <Header as="h1">Playlist Exchange</Header>
+          <SmallLogoCondensed />
         </header>
         <PlaylistsManager playlists={playlists} hasGetError={hasGetError} />
       </div>
@@ -51,5 +53,9 @@ class Home extends React.Component<{}, IHomeState> {
     );
   }
 }
+
+const SmallLogoCondensed = styled(LogoCondensed)`
+  font-size: 1em;
+`;
 
 export default Home;
