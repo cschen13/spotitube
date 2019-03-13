@@ -6,40 +6,37 @@ interface ILogoProps {
 }
 
 export const Logo: React.FunctionComponent<ILogoProps> = ({ className }) => (
-  <LogoContainer className={className}>
+  <h1 className={className}>
     <PlaylistSpan>PLAYLIST</PlaylistSpan>
     <XSpan>X</XSpan>
     <ChangeSpan>CHANGE</ChangeSpan>
-  </LogoContainer>
+  </h1>
 );
 
 export const LogoCondensed: React.FunctionComponent<ILogoProps> = ({
   className
 }) => (
-  <LogoContainer className={className}>
+  <h1 className={className}>
     <PlaylistSpan>P</PlaylistSpan>
     <XSpan>X</XSpan>
     <ChangeSpan>C</ChangeSpan>
-  </LogoContainer>
+  </h1>
 );
-
-const LogoContainer = styled.h1`
-  height: 3.5em;
-`;
 
 const PlaylistSpan = styled.span`
   position: relative;
   top: 0.25em;
+  font-size: 0.33em;
 `;
 
 const XSpan = styled.span`
   position: relative;
-  font-size: 3em;
   top: 0.5em;
 `;
 
 const ChangeSpan = styled.span`
   position: relative;
   top: 1.5em;
+  font-size: 0.33em;
   color: purple;
 `;
