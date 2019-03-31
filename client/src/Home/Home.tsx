@@ -1,10 +1,10 @@
 import * as React from "react";
-import { Header } from "semantic-ui-react";
 import playlistService, { IPlaylist } from "../services/PlaylistService";
 import Greeting from "./Greeting";
 import PlaylistsManager from "./PlaylistsManager/PlaylistsManager";
 import { LogoCondensed } from "./Logo";
 import styled from "styled-components";
+import { Header } from "semantic-ui-react";
 
 interface IHomeState {
   loggedIn: boolean;
@@ -42,10 +42,10 @@ class Home extends React.Component<{}, IHomeState> {
     const { hasGetError, loggedIn, playlists } = this.state;
 
     return loggedIn && playlists ? (
-      <div>
-        <header>
+      <div className="ui container">
+        <Header>
           <SmallLogoCondensed />
-        </header>
+        </Header>
         <PlaylistsManager playlists={playlists} hasGetError={hasGetError} />
       </div>
     ) : (
@@ -55,7 +55,7 @@ class Home extends React.Component<{}, IHomeState> {
 }
 
 const SmallLogoCondensed = styled(LogoCondensed)`
-  font-size: 1em;
+  font-size: 2em;
 `;
 
 export default Home;

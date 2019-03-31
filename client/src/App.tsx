@@ -5,11 +5,7 @@ import styled from "styled-components";
 
 class App extends React.Component {
   public render() {
-    return (
-      <div className="ui container">
-        <Home />
-      </div>
-    );
+    return <Home />;
   }
 }
 

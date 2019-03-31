@@ -9,29 +9,69 @@ interface IGreetingProps {
 
 const Greeting: React.FunctionComponent<IGreetingProps> = ({ loginUrl }) => {
   return (
-    <div>
-      <Header>
+    <Landing>
+      <Header className="ui container">
         <MobileLogo />
         <DesktopLogo />
       </Header>
-      <Landing>
-        <h2>
-          Convert your Spotify playlists to YouTube music video playlists.
-        </h2>
-        <p>Get started now.</p>
-        <a href={loginUrl}>Login with Spotify</a>
-      </Landing>
-    </div>
+      <Splash>
+        <SplashHeaderContainer className="ui container">
+          <SplashHeader>
+            Convert your Spotify playlists to YouTube music video playlists.
+          </SplashHeader>
+        </SplashHeaderContainer>
+        <Action>
+          <div className="ui container">
+            <p>Link your accounts to get started now.</p>
+            <LoginButton href={loginUrl} size="large" color="purple">
+              Login with Spotify
+            </LoginButton>
+          </div>
+        </Action>
+      </Splash>
+    </Landing>
   );
 };
 
 const Landing = styled.div`
-  height: 50vh;
   display: flex;
   flex-direction: column;
-  margin-top: 50px;
+  height: 100vh;
+`;
+
+const Splash = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 
   font-weight: 200;
+  @media only screen and (min-device-width: 768px) {
+    margin-top: 25px;
+  }
+`;
+
+const SplashHeaderContainer = styled.div`
+  margin-bottom: 50px;
+`;
+
+const SplashHeader = styled.h2`
+  font-size: 3em;
+
+  @media only screen and (min-device-width: 768px) {
+    font-size: 4em;
+  }
+`;
+
+const Action = styled.div`
+  flex: 1;
+  padding-top: 25px;
+
+  font-size: 2em;
+  background-color: lightgray;
+`;
+
+const LoginButton = styled(Button)`
+  font-size: 4em;
 `;
 
 const DesktopLogo = styled(Logo)`
