@@ -3,21 +3,10 @@ import { Dimmer, Loader, Table } from "semantic-ui-react";
 import { ITrack } from "../../../../services/TrackService";
 
 interface ITrackListProps {
-  tracks?: ITrack[];
+  tracks: ITrack[];
 }
 
 const Tracklist: React.FunctionComponent<ITrackListProps> = ({ tracks }) => {
-  if (typeof tracks === "undefined") {
-    return (
-      <Dimmer active inverted>
-        <Loader
-          inverted
-          content="Loading Playlist (Long tracklists may take a while...)"
-        />
-      </Dimmer>
-    );
-  }
-
   return (
     <Table definition>
       <Table.Header>

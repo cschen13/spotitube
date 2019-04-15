@@ -1,7 +1,7 @@
 import { parse } from "query-string";
 import * as React from "react";
 import { RouteComponentProps } from "react-router-dom";
-import { Header, Image } from "semantic-ui-react";
+import { Header, Image, Accordion, Loader } from "semantic-ui-react";
 // @ts-ignore: https://github.com/Microsoft/TypeScript/issues/15146
 import noArtwork from "../../../imgs/no-artwork.png";
 import playlistService, { IPlaylist } from "../../../services/PlaylistService";
@@ -11,7 +11,8 @@ import Tracklist from "./Tracklist/Tracklist";
 
 // TODO: Pass playlist details as props instead of using API to set state
 interface IPlaylistDetailState {
-  readonly hasGetError: boolean;
+  readonly hasDetailsError: boolean;
+  readonly hasTracksError: boolean;
   readonly playlist?: IPlaylist;
   readonly tracks?: ITrack[];
 }
@@ -29,7 +30,8 @@ class PlaylistDetail extends React.Component<
   constructor(props: PlaylistDetailProps) {
     super(props);
     this.state = {
-      hasGetError: false,
+      hasDetailsError: false,
+      hasTracksError: false,
       playlist: {
         coverUrl: "",
         name: ""
@@ -42,24 +44,33 @@ class PlaylistDetail extends React.Component<
     const ownerId = this.props.match.params.ownerId;
     const playlistId = this.props.match.params.playlistId;
 
-    const [detailsResponse, tracksResponse] = await Promise.all([
-      playlistService.getPlaylistDetails(ownerId, playlistId),
-      playlistService.getPlaylistTracks(ownerId, playlistId)
-    ]);
-
-    if (detailsResponse.error || tracksResponse.error) {
-      this.setState({ hasGetError: true });
+    const detailsResponse = await playlistService.getPlaylistDetails(
+      ownerId,
+      playlistId
+    );
+    if (detailsResponse.error) {
+      this.setState({ hasDetailsError: true });
     } else {
       this.setState({
-        playlist: detailsResponse.value,
+        playlist: detailsResponse.value
+      });
+    }
+
+    const tracksResponse = await playlistService.getPlaylistTracks(
+      ownerId,
+      playlistId
+    );
+    if (tracksResponse.error) {
+      this.setState({ hasTracksError: true });
+    } else {
+      this.setState({
         tracks: tracksResponse.value
       });
     }
   }
 
   public render() {
-    const playlist = this.state.playlist;
-    const tracks = this.state.tracks;
+    const { playlist, tracks, hasDetailsError, hasTracksError } = this.state;
     if (typeof playlist === "undefined") {
       return null;
     }
@@ -76,12 +87,25 @@ class PlaylistDetail extends React.Component<
     return (
       <div>
         <Header as="h2">{playlistName}</Header>
-        {this.state.hasGetError ? (
-          <p>An error occurred retrieving some part of the playlist.</p>
-        ) : (
-          <div>
-            <Image src={coverUrl === "" ? noArtwork : coverUrl} size="medium" />
-            {typeof tracks !== "undefined" && (
+        {this.state.hasDetailsError && (
+          <p>An error occurred retrieving some of the playlist details.</p>
+        )}
+        <div>
+          <Image src={coverUrl === "" ? noArtwork : coverUrl} size="medium" />
+          {hasTracksError && (
+            <p>
+              Cannot convert. An error occurred while retrieving the tracklist.
+            </p>
+          )}
+
+          {typeof tracks === "undefined" ? (
+            <Loader
+              active
+              inline="centered"
+              content="Loading tracklist... (Long playlists may take a while)"
+            />
+          ) : (
+            <div>
               <ConvertModal
                 ownerId={ownerId}
                 playlistId={playlistId}
@@ -89,10 +113,21 @@ class PlaylistDetail extends React.Component<
                 beginConverting={beginConverting}
                 history={history}
               />
-            )}
-            <Tracklist tracks={tracks} />
-          </div>
-        )}
+              <Accordion
+                panels={[
+                  {
+                    content: {
+                      content: <Tracklist tracks={tracks} />
+                    },
+                    title: {
+                      content: "View tracks"
+                    }
+                  }
+                ]}
+              />
+            </div>
+          )}
+        </div>
       </div>
     );
   }
