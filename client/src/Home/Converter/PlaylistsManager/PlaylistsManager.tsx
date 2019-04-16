@@ -1,12 +1,14 @@
 import * as React from "react";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
-import { IPlaylist } from "../../services/PlaylistService";
+import { IPlaylist } from "../../../services/PlaylistService";
 import PlaylistDetail from "./PlaylistDetail/PlaylistDetail";
 import Playlists from "./Playlists/Playlists";
+import { ITrack } from "../../../services/TrackService";
 
 interface IPlaylistsManagerProps {
   playlists: IPlaylist[];
   hasGetError: boolean;
+  onConvert: (playlist?: IPlaylist, tracks?: ITrack[]) => void;
 }
 
 class PlaylistsManager extends React.Component<IPlaylistsManagerProps> {
@@ -30,10 +32,24 @@ class PlaylistsManager extends React.Component<IPlaylistsManagerProps> {
             path="/"
             render={() => <Playlists playlists={playlists} />}
           />
-          <Route path="/:ownerId/:playlistId" component={PlaylistDetail} />
+          <Route
+            path="/:ownerId/:playlistId"
+            render={props => (
+              <PlaylistDetail
+                {...props}
+                onConvert={(playlist, tracks) =>
+                  this.handleConvert(playlist, tracks)
+                }
+              />
+            )}
+          />
         </Switch>
       </Router>
     );
+  }
+
+  private handleConvert(playlist?: IPlaylist, tracks?: ITrack[]) {
+    this.props.onConvert(playlist, tracks);
   }
 }
 

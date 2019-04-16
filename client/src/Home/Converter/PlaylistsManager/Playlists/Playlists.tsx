@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Header, List } from "semantic-ui-react";
-import { IPlaylist } from "../../../services/PlaylistService";
+import { IPlaylist } from "../../../../services/PlaylistService";
 
 interface IPlaylistsProps {
   playlists: IPlaylist[];

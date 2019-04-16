@@ -1,13 +1,14 @@
 import * as React from "react";
-import playlistService, { IPlaylist } from "../services/PlaylistService";
-import Greeting from "./Greeting";
-import PlaylistsManager from "./PlaylistsManager/PlaylistsManager";
-import { LogoCondensed } from "./Logo";
-import styled from "styled-components";
 import { Header } from "semantic-ui-react";
+import styled from "styled-components";
+import playlistService, { IPlaylist } from "../services/PlaylistService";
+import Converter from "./Converter/Converter";
+import Greeting from "./Greeting";
+import { LogoCondensed } from "./Logo";
 
 interface IHomeState {
   loggedIn: boolean;
+  // TODO: Move playlists state to Converter for account switching.
   playlists?: IPlaylist[];
   hasGetError: boolean;
 }
@@ -46,7 +47,7 @@ class Home extends React.Component<{}, IHomeState> {
         <Header>
           <SmallLogoCondensed />
         </Header>
-        <PlaylistsManager playlists={playlists} hasGetError={hasGetError} />
+        <Converter playlists={playlists} hasGetError={hasGetError} />
       </div>
     ) : (
       <Greeting loginUrl={this.loginUrl} />

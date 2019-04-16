@@ -1,11 +1,13 @@
 import { parse } from "query-string";
 import * as React from "react";
 import { RouteComponentProps } from "react-router-dom";
-import { Header, Image, Accordion, Loader } from "semantic-ui-react";
+import { Header, Image, Accordion, Loader, Button } from "semantic-ui-react";
 // @ts-ignore: https://github.com/Microsoft/TypeScript/issues/15146
-import noArtwork from "../../../imgs/no-artwork.png";
-import playlistService, { IPlaylist } from "../../../services/PlaylistService";
-import { ITrack } from "../../../services/TrackService";
+import noArtwork from "../../../../imgs/no-artwork.png";
+import playlistService, {
+  IPlaylist
+} from "../../../../services/PlaylistService";
+import { ITrack } from "../../../../services/TrackService";
 import ConvertModal from "./ConvertModal/ConvertModal";
 import Tracklist from "./Tracklist/Tracklist";
 
@@ -17,12 +19,17 @@ interface IPlaylistDetailState {
   readonly tracks?: ITrack[];
 }
 
+interface IPlaylistDetailProps {
+  onConvert: (playlist?: IPlaylist, tracks?: ITrack[]) => void;
+}
+
 interface IPlaylistDetailMatchProps {
   ownerId: string;
   playlistId: string;
 }
 
-type PlaylistDetailProps = RouteComponentProps<IPlaylistDetailMatchProps>;
+type PlaylistDetailProps = IPlaylistDetailProps &
+  RouteComponentProps<IPlaylistDetailMatchProps>;
 class PlaylistDetail extends React.Component<
   PlaylistDetailProps,
   IPlaylistDetailState
@@ -80,7 +87,7 @@ class PlaylistDetail extends React.Component<
     const ownerId = this.props.match.params.ownerId;
     const playlistId = this.props.match.params.playlistId;
 
-    const history = this.props.history;
+    const { onConvert, history } = this.props;
     const beginConverting =
       parse(this.props.location.search).convert === "true";
 
@@ -106,6 +113,9 @@ class PlaylistDetail extends React.Component<
             />
           ) : (
             <div>
+              <Button color="purple" onClick={() => this.handleConvert()}>
+                Convert Playlist
+              </Button>
               <ConvertModal
                 ownerId={ownerId}
                 playlistId={playlistId}
@@ -130,6 +140,12 @@ class PlaylistDetail extends React.Component<
         </div>
       </div>
     );
+  }
+
+  private handleConvert() {
+    const { playlist, tracks } = this.state;
+    const { onConvert } = this.props;
+    onConvert(playlist, tracks);
   }
 }
 
