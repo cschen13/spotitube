@@ -1,6 +1,7 @@
 import * as React from "react";
 import { ILoadedPlaylist } from "../Converter";
-import { Sidebar, Button } from "semantic-ui-react";
+import { Sidebar, Button, Segment } from "semantic-ui-react";
+import styled from "styled-components";
 
 interface IConvertPanelProps {
   playlistsToConvert: ILoadedPlaylist[];
@@ -26,9 +27,9 @@ export default class ConvertPanel extends React.Component<
     const { visible } = this.state;
     return (
       <div>
-        <Button onClick={() => this.setState({ visible: true })}>
-          View Conversions
-        </Button>
+        <BottomBar onClick={() => this.setState({ visible: true })}>
+          <p>View Conversions</p>
+        </BottomBar>
         <Sidebar
           animation="overlay"
           direction="bottom"
@@ -48,3 +49,19 @@ export default class ConvertPanel extends React.Component<
     );
   }
 }
+
+const BottomBar = styled.div`
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  height: 5vh;
+  width: 100vw;
+  padding: 0 10px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  background-color: white;
+  border-top: 1px solid;
+`;
